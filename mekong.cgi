@@ -38,10 +38,15 @@ sub cgi_main {
 	
 	if (defined $search_terms) {
 		print search_results($search_terms);
-	} elsif (defined $login) {
+	} elsif (defined $login && $login ne "") {
 		print search_form();
-	} elsif (defined $action && $action == "Create New Account") {
-		print newAccount_form();
+	} elsif (defined $action) {
+		if($action eq "Create New Account") {
+			print newAccount_form();
+		} elsif($action eq "Create Account") {
+			createAccount(param(login),param(password),param(name),param(street),param(city),param(state),param(postcode),param(email));
+			redirect to login
+		}
 
 	} else {
 		print login_form();
@@ -65,7 +70,9 @@ eof
 }
 sub newAccount_form {
 	return <<eof;
-	<input type="hidden" name="screen" value="new_account"><p /><p /><table align="center"><caption><font color=red></font></caption> <tr><td>Login:</td> <td><input type="text" name="login"  width="10" /></td></tr>
+	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
+	<input type="hidden" name="screen" value="new_account"><p /><p />
+	<table align="center"><caption><font color=red></font></caption> <tr><td>Login:</td> <td><input type="text" name="login"  width="10" /></td></tr>
 	 <tr><td>Password:</td> <td><input type="password" name="password"  width="10" /></td></tr>
 	 <tr><td>Full Name:</td> <td><input type="text" name="name"  width="50" /></td></tr>
 	 <tr><td>Street:</td> <td><input type="text" name="street"  width="50" /></td></tr>
@@ -74,15 +81,29 @@ sub newAccount_form {
 	 <tr><td>Postcode:</td> <td><input type="text" name="postcode"  width="25" /></td></tr>
 	 <tr><td>Email Address:</td> <td><input type="text" name="email"  width="35" /></td></tr>
 	 <tr><td align="center" colspan="1"> <input class="btn" type="submit" name="action" value="Create Account">
-	</td></tr></table>
+	</td></tr>
+	</table>
+	</form>
 eof
 }
 
+sub createAccount {
+	my ($login,$password,$name,$street,$city,$state,$postcode,$email) = chomp($_);
+	`touch /users/$login`;
+	`print to file`
+	password="$password";
+	name="$name";
+	street="$street";
+	city="$city";
+	state="$state";
+	postcode="$postcode";
+	email="$email";
+}
 # simple search form
 sub search_form {
 	return <<eof;
 	<p>
-	<form>
+	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
 		search: <input type="text" name="search_terms" size=60></input>
 	</form>
 	<p>
