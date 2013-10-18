@@ -54,6 +54,8 @@ sub login_form {
 	<form>
 		<div>login: <input type="text" name="login" size=16></input></dvi>
 		<div>password: <input type="password" name="login" size=16></input></dvi>
+		<div><input class="btn" type="submit" name="action" value="Login"></div>
+		<div><input class="btn" type="submit" name="action" value="Create New Account"></dvi>
 	</form>
 	<p>
 eof
