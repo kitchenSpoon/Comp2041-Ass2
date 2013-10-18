@@ -41,6 +41,7 @@ sub cgi_main {
 		print search_form();
 	} else {
 		print login_form();
+
 	}
 	
 	print page_trailer();
@@ -51,7 +52,8 @@ sub login_form {
 	return <<eof;
 	<p>
 	<form>
-		login: <input type="text" name="login" size=16></input>
+		<div>login: <input type="text" name="login" size=16></input></dvi>
+		<div>password: <input type="password" name="login" size=16></input></dvi>
 	</form>
 	<p>
 eof
