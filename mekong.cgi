@@ -34,14 +34,17 @@ sub cgi_main {
 
 	my $login = param('login');
 	my $search_terms = param('search_terms');
+	my $action = param('action');
 	
 	if (defined $search_terms) {
 		print search_results($search_terms);
 	} elsif (defined $login) {
 		print search_form();
+	} elsif (defined $action && $action == "Create New Account") {
+		print newAccount_form();
+
 	} else {
 		print login_form();
-
 	}
 	
 	print page_trailer();
@@ -58,6 +61,20 @@ sub login_form {
 		<div><input class="btn" type="submit" name="action" value="Create New Account"></dvi>
 	</form>
 	<p>
+eof
+}
+sub newAccount_form {
+	return <<eof;
+	<input type="hidden" name="screen" value="new_account"><p /><p /><table align="center"><caption><font color=red></font></caption> <tr><td>Login:</td> <td><input type="text" name="login"  width="10" /></td></tr>
+	 <tr><td>Password:</td> <td><input type="password" name="password"  width="10" /></td></tr>
+	 <tr><td>Full Name:</td> <td><input type="text" name="name"  width="50" /></td></tr>
+	 <tr><td>Street:</td> <td><input type="text" name="street"  width="50" /></td></tr>
+	 <tr><td>City/Suburb:</td> <td><input type="text" name="city"  width="25" /></td></tr>
+	 <tr><td>State:</td> <td><input type="text" name="state"  width="25" /></td></tr>
+	 <tr><td>Postcode:</td> <td><input type="text" name="postcode"  width="25" /></td></tr>
+	 <tr><td>Email Address:</td> <td><input type="text" name="email"  width="35" /></td></tr>
+	 <tr><td align="center" colspan="1"> <input class="btn" type="submit" name="action" value="Create Account">
+	</td></tr></table>
 eof
 }
 
