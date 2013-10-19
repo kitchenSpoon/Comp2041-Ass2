@@ -44,8 +44,8 @@ sub cgi_main {
 		if($action eq "Create New Account") {
 			print newAccount_form();
 		} elsif($action eq "Create Account") {
-			createAccount(param(login),param(password),param(name),param(street),param(city),param(state),param(postcode),param(email));
-			redirect to login
+			createAccount(param('login'),param('password'),param('name'),param('street'),param('city'),param('state'),param('postcode'),param('email'));
+			#redirect to login
 		}
 
 	} else {
@@ -88,16 +88,16 @@ eof
 }
 
 sub createAccount {
-	my ($login,$password,$name,$street,$city,$state,$postcode,$email) = chomp($_);
-	`touch /users/$login`;
-	`print to file`
-	password="$password";
-	name="$name";
-	street="$street";
-	city="$city";
-	state="$state";
-	postcode="$postcode";
-	email="$email";
+	#my ($login,$password,$name,$street,$city,$state,$postcode,$email) = chomp($_);
+	#`touch /users/$login`;
+	#`print to file`
+	#password="$password";
+	#name="$name";
+	#street="$street";
+	#city="$city";
+	#state="$state";
+	#postcode="$postcode";
+	#email="$email";
 }
 # simple search form
 sub search_form {
