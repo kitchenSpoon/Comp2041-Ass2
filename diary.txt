@@ -1,2 +1,3 @@
 Date		Start 		Stop 		Activity 		Comments
 18/10/13	18:04		18:38		Start			Download default file added login and create new accounts button and signup page
+19/10/13	22:38		22:42		Debugging		Fixed bug with param

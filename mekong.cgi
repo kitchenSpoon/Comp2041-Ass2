@@ -38,7 +38,7 @@ sub cgi_main {
 	
 	if (defined $search_terms) {
 		print search_results($search_terms);
-	} elsif (defined $login && $login ne "") {
+	} elsif (defined $login && $login ne "" && $action ne "Create Account") {
 		print search_form();
 	} elsif (defined $action) {
 		if($action eq "Create New Account") {
@@ -88,16 +88,20 @@ eof
 }
 
 sub createAccount {
-	#my ($login,$password,$name,$street,$city,$state,$postcode,$email) = chomp($_);
+	my ($login,$password,$name,$street,$city,$state,$postcode,$email) = @_;
+	open (F,">users/$login");
+	
 	#`touch /users/$login`;
 	#`print to file`
-	#password="$password";
-	#name="$name";
-	#street="$street";
-	#city="$city";
-	#state="$state";
-	#postcode="$postcode";
-	#email="$email";
+	print F "password=$password\n";
+	print F "name=$name\n";
+	print F "street=$street\n";
+	print F "city=$city\n";
+	print F "state=$state\n";
+	print F "postcode=$postcode\n";
+	print F "email=$email\n";
+	
+	close F;
 }
 # simple search form
 sub search_form {
