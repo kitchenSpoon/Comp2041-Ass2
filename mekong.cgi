@@ -38,14 +38,14 @@ sub cgi_main {
 	
 	if (defined $search_terms) {
 		print search_results($search_terms);
-	} elsif (defined $login && $login ne "" && $action ne "Create Account") {
-		print search_form();
 	} elsif (defined $action) {
 		if($action eq "Create New Account") {
 			print newAccount_form();
 		} elsif($action eq "Create Account") {
 			createAccount(param('login'),param('password'),param('name'),param('street'),param('city'),param('state'),param('postcode'),param('email'));
 			#redirect to login
+		} elsif($action eq "Login" && legal_login(param("login")) && legal_password(param("password"))) {
+			print search_form();
 		}
 
 	} else {
@@ -61,7 +61,7 @@ sub login_form {
 	<p>
 	<form>
 		<div>login: <input type="text" name="login" size=16></input></dvi>
-		<div>password: <input type="password" name="login" size=16></input></dvi>
+		<div>password: <input type="password" name="password" size=16></input></dvi>
 		<div><input class="btn" type="submit" name="action" value="Login"></div>
 		<div><input class="btn" type="submit" name="action" value="Create New Account"></dvi>
 	</form>
