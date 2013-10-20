@@ -35,6 +35,8 @@ sub cgi_main {
 	my $login = param('login');
 	my $search_terms = param('search_terms');
 	my $action = param('action');
+	@detail=(param());
+	$detail=shift @detail;
 	
 	if (defined $search_terms) {
 		#if($action =~ /[0-9]*/)
@@ -66,6 +68,12 @@ sub cgi_main {
 			print print_user_button();
 		}
 	
+	} elsif (defined $detail && $detail =~ /action [0-9]*/) {
+		($action,$isbn)=split(' ',$detail);
+		print "$isbn\n";
+		print "yeah\n";
+		print print_books($isbn);
+		#print detail_page();
 	} else {
 		print login_form();
 	}
@@ -146,9 +154,11 @@ sub search_results {
 	</form>
 	<!--<p>@matching_isbns-->
 	<!--<pre>-->
-		<table bgcolor="white" border="1" align="center"><caption></caption>
-		$descriptions
-		</table>
+		<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
+			<table bgcolor="white" border="1" align="center"><caption></caption>
+			$descriptions
+			</table>
+		</form>
 	<!--</pre>-->
 	<p>
 eof
