@@ -38,6 +38,7 @@ sub cgi_main {
 	
 	if (defined $search_terms) {
 		print search_results($search_terms);
+		print print_user_button();
 	} elsif (defined $action) {
 		if($action eq "Create New Account") {
 			print newAccount_form();
@@ -46,6 +47,7 @@ sub cgi_main {
 			#redirect to login
 		} elsif($action eq "Login" && authenticate(param("login"),param("password"))) {
 			print search_form();
+			print print_user_button();
 		}
 
 	} else {
@@ -154,6 +156,17 @@ sub get_book_descriptions2 {
 	
 	return $descriptions;
 }
+
+sub print_user_button() {
+	return <<eof;
+	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4"> <input class="btn" type="submit" name="action" value="Basket">
+	<input class="btn" type="submit" name="action" value="Check out">
+	<input class="btn" type="submit" name="action" value="View orders">
+	<input class="btn" type="submit" name="action" value="Logout">
+	</td></tr></table>
+eof
+}
+
 #
 # HTML at top of every screen
 #

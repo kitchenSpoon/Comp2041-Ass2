@@ -2,4 +2,4 @@ Date		Start 		Stop 		Activity 		Comments
 18/10/13	18:04		18:38		Start			Download default file added login and create new accounts button and signup page
 19/10/13	22:38		22:42		Debugging		Fixed bug with param
 20/10/13	19:25		19:32		Login			Integrated legal_login and legal_password
-20/10/13	19:32		19:58		Search			Formatted search result
+20/10/13	19:32		20:14		Search			Formatted search result
