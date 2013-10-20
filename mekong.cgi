@@ -44,7 +44,7 @@ sub cgi_main {
 		} elsif($action eq "Create Account") {
 			createAccount(param('login'),param('password'),param('name'),param('street'),param('city'),param('state'),param('postcode'),param('email'));
 			#redirect to login
-		} elsif($action eq "Login" && legal_login(param("login")) && legal_password(param("password"))) {
+		} elsif($action eq "Login" && authenticate(param("login"),param("password"))) {
 			print search_form();
 		}
 
@@ -118,17 +118,42 @@ eof
 sub search_results {
 	my ($search_terms) = @_;
 	my @matching_isbns = search_books($search_terms);
-	my $descriptions = get_book_descriptions(@matching_isbns);
+	my $descriptions = get_book_descriptions2(@matching_isbns);
 	return <<eof;
-	<p>$search_terms
-	<p>@matching_isbns
-	<pre>
+	<!--<p>$search_terms-->
+	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
+		<table align="center"><tr><td align="center">
+			search: <input type="text" name="search_terms" value="$search_terms" size=60></input>
+		</td></tr></table>
+	</form>
+	<!--<p>@matching_isbns-->
+	<!--<pre>-->
+		<table bgcolor="white" border="1" align="center"><caption></caption>
 		$descriptions
-	</pre>
+		</table>
+	<!--</pre>-->
 	<p>
 eof
 }
-
+sub get_book_descriptions2 {
+	my @isbns = @_;
+	my $descriptions = "";
+	our %book_details;
+	foreach $isbn (@isbns) {
+		die "Internal error: unknown isbn $isbn in print_books\n" if !$book_details{$isbn}; # shouldn't happen
+		my $title = $book_details{$isbn}{title} || "";
+		my $authors = $book_details{$isbn}{authors} || "";
+		$authors =~ s/\n([^\n]*)$/ & $1/g;
+		$authors =~ s/\n/, /g;
+		$descriptions .= sprintf '<tr><td><img src="%s"></td> <td><i>%s</i><br>%s<br></td> <td align="right"><tt>%7s</tt></td> <td><input class="btn" type="submit" name="action 0061456489" value="Add"><br>',$book_details{$isbn}{smallimageurl},$title,$authors,$book_details{$isbn}{price};
+		$descriptions .= '<input class="btn" type="submit" name="action 0061456489" value="Details"><br>';
+		$descriptions .= '</td></tr>';
+	}
+	
+	
+	
+	return $descriptions;
+}
 #
 # HTML at top of every screen
 #
