@@ -11,3 +11,4 @@ Date		Start 		Stop 		Activity 		Comments
 22/10/13	17:03		20:11		Bug Fixing		Bug Fixing and Dinner and Presentation competition
 22/10/13	20:11		20:27		Add book		Add book working
 22/10/13	20:27		21:03		Basket			Show Basket page
+22/10/13	21:03		21:11		Basket Drop		Basket Drop works

@@ -83,6 +83,11 @@ sub cgi_main {
 			print search_results($search_terms);
 			print print_user_button();
 		}
+		elsif(param($detail) eq "Drop")
+		{
+			delete_basket($login,$isbn);
+			print basket_page(read_basket($login));
+		}
 		else{ # details
 			print detail_page($isbn);
 			print details_user_button();
