@@ -74,19 +74,15 @@ sub cgi_main {
 		($action,$isbn)=split(' ',$detail);
 		#print param($detail);
 		if(param($detail) eq "Add"){
-			print "Add";
-			#add_basket($Login)
+			add_basket($login,$isbn);
+			print search_results($search_terms);
+			print print_user_button();
 		}
 		else{ # details
 			print detail_page($isbn);
 			print details_user_button();
 		}
 	} elsif (defined $search_terms) {
-		#if($action =~ /[0-9]*/)
-		#{
-		#	details_command($login)
-		#}
-		#else {
 			param(-name=>'screen',-value=>'searchRes');
 			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print search_results($search_terms);
