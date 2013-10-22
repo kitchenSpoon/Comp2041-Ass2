@@ -43,7 +43,7 @@ sub cgi_main {
 			$detail=$_;
 		}
 	}
-	print $detail;
+	#print $detail;
 	
 	if (defined $action) {
 		if($action eq "Check out") {
