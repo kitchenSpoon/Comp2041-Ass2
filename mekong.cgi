@@ -70,9 +70,9 @@ sub cgi_main {
 	
 	} elsif (defined $detail && $detail =~ /action [0-9]*/) {
 		($action,$isbn)=split(' ',$detail);
-		print "$isbn\n";
-		print "yeah\n";
+		#print "$isbn\n";
 		print detail_page($isbn);
+		print details_user_button();
 	} else {
 		print login_form();
 	}
@@ -173,7 +173,7 @@ sub get_book_descriptions2 {
 		$authors =~ s/\n([^\n]*)$/ & $1/g;
 		$authors =~ s/\n/, /g;
 		$descriptions .= sprintf '<tr><td><img src="%s"></td> <td><i>%s</i><br>%s<br></td> <td align="right"><tt>%7s</tt></td> <td><input class="btn" type="submit" name="action 0061456489" value="Add"><br>',$book_details{$isbn}{smallimageurl},$title,$authors,$book_details{$isbn}{price};
-		$descriptions .= '<input class="btn" type="submit" name="action 0061456489" value="Details"><br>';
+		$descriptions .= '<input class="btn" type="submit" name="action '.$isbn.'" value="Details"><br>';
 		$descriptions .= '</td></tr>';
 	}
 	
@@ -184,16 +184,23 @@ sub get_book_descriptions2 {
 
 sub detail_page {
 	my $isbn = $_[0];
-	print_books($isbn);
-	return <<eof;
-	<table bgcolor="white" align="center"><tr><td><b>authors</b></td> <td>Jake Page</td></tr>
+	#print_books($isbn);
+	our %book_details;
+	$ret.=<<eof;
+	<h2>$book_details{$isbn}{title} - $book_details{$isbn}{authors}</h2>
+	<p>$book_details{$isbn}{productdescription}</p>
+	<table bgcolor="white" align="center">
+		<tr><td><img src="$book_details{$isbn}{largeimageurl}"></td></tr>
+	</table>
+	<table bgcolor="white" align="center">
+	 <tr><td><b>authors</b></td> <td>Jake Page</td></tr>
 	 <tr><td><b>binding</b></td> <td>Hardcover</td></tr>
 	 <tr><td><b>catalog</b></td> <td>Book</td></tr>
 	 <tr><td><b>ean</b></td> <td>9780061456480</td></tr>
 	 <tr><td><b>edition</b></td> <td>1</td></tr>
 	 <tr><td><b>isbn</b></td> <td>0061456489</td></tr>
 	 <tr><td><b>numpages</b></td> <td>224</td></tr>
-	 <tr><td><b>price</b></td> <td>$24.95</td></tr>
+	 <tr><td><b>price</b></td> <td>\$24.95</td></tr>
 	 <tr><td><b>publication_date</b></td> <td>2008-11-18</td></tr>
 	 <tr><td><b>publisher</b></td> <td>Smithsonian</td></tr>
 	 <tr><td><b>releasedate</b></td> <td>2008-11-18</td></tr>
@@ -202,14 +209,29 @@ sub detail_page {
 	 <tr><td><b>year</b></td> <td>2008</td></tr>
 	</table>
 eof
+	
+	return $ret;
 }
 
-sub print_user_button() {
+sub print_user_button {
 	return <<eof;
 	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
 	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4"> <input class="btn" type="submit" name="action" value="Basket">
 	<input class="btn" type="submit" name="action" value="Check out">
 	<input class="btn" type="submit" name="action" value="View orders">
+	<input class="btn" type="submit" name="action" value="Logout">
+	</td></tr></table>
+	</form>
+eof
+}
+
+sub details_user_button {
+	return <<eof;
+	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
+	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4">
+	<input class="btn" type="submit" name="action" value="Add">
+	<input class="btn" type="submit" name="action" value="Basket">
+	<input class="btn" type="submit" name="action" value="Check out">
 	<input class="btn" type="submit" name="action" value="Logout">
 	</td></tr></table>
 	</form>
