@@ -44,6 +44,7 @@ sub cgi_main {
 		#	details_command($login)
 		#}
 		#else {
+			print hidden_inputs();
 			print search_results($search_terms);
 			print print_user_button();
 		#}
@@ -51,7 +52,9 @@ sub cgi_main {
 		if($action eq "Check out") {
 			print "Check out";
 			#checkout_command($login)
+			
 		} elsif($action eq "View orders") {
+			print hidden_inputs();
 			print "View Orders";
 			#read_basket($Login)
 		
@@ -64,15 +67,24 @@ sub cgi_main {
 			createAccount(param('login'),param('password'),param('name'),param('street'),param('city'),param('state'),param('postcode'),param('email'));
 			print search_form();
 		} elsif($action eq "Login" && authenticate(param("login"),param("password"))) {
+			print hidden_inputs();
 			print search_form();
 			print print_user_button();
 		}
 	
 	} elsif (defined $detail && $detail =~ /action [0-9]*/) {
+		print hidden_inputs();
 		($action,$isbn)=split(' ',$detail);
-		#print "$isbn\n";
-		print detail_page($isbn);
-		print details_user_button();
+		#print param($detail);
+		if(param($detail) eq "Add"){
+			print "Add";
+			#add_basket($Login)
+		}
+		else{ # details
+			print hidden_inputs();
+			print detail_page($isbn);
+			print details_user_button();
+		}
 	} else {
 		print login_form();
 	}
@@ -91,6 +103,15 @@ sub login_form {
 		<div><input class="btn" type="submit" name="action" value="Create New Account"></dvi>
 	</form>
 	<p>
+eof
+}
+
+sub hidden_inputs {
+
+	return <<eof;
+	<input type="hidden" name="screen" value="main">
+	<input type="hidden" name="login" value="jack">
+	<input type="hidden" name="password" value="hahahaha1">
 eof
 }
 sub newAccount_form {
@@ -172,7 +193,7 @@ sub get_book_descriptions2 {
 		my $authors = $book_details{$isbn}{authors} || "";
 		$authors =~ s/\n([^\n]*)$/ & $1/g;
 		$authors =~ s/\n/, /g;
-		$descriptions .= sprintf '<tr><td><img src="%s"></td> <td><i>%s</i><br>%s<br></td> <td align="right"><tt>%7s</tt></td> <td><input class="btn" type="submit" name="action 0061456489" value="Add"><br>',$book_details{$isbn}{smallimageurl},$title,$authors,$book_details{$isbn}{price};
+		$descriptions .= sprintf '<tr><td><img src="%s"></td> <td><i>%s</i><br>%s<br></td> <td align="right"><tt>%7s</tt></td> <td><input class="btn" type="submit" name="action '.$isbn.'" value="Add"><br>',$book_details{$isbn}{smallimageurl},$title,$authors,$book_details{$isbn}{price};
 		$descriptions .= '<input class="btn" type="submit" name="action '.$isbn.'" value="Details"><br>';
 		$descriptions .= '</td></tr>';
 	}
@@ -255,6 +276,7 @@ Content-Type: text/html
 <body>
 <p>
 <div class="container">
+<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
 eof
 }
 
@@ -265,6 +287,7 @@ sub page_trailer() {
 	my $debugging_info = debugging_info();
 	
 	return <<eof;
+	</form>
 	$debugging_info
 	</div>
 <body>

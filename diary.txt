@@ -6,4 +6,4 @@ Date		Start 		Stop 		Activity 		Comments
 20/10/13	20:14		20:19		Buttons			Added Basket,CheckOut,ViewOrders and Logout buttons, not working yet
 21/10/13	00:10		00:31		Buttons			Make the buttons do some stuff, redirect after creation of accounts
 21/10/13	00:31		01:11		Buttons			Got Details button to redirect somewhere
-22/10/13	13:08		13:11		Detail			Details page
+22/10/13	13:08		13:53		Detail			Details page
