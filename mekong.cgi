@@ -54,6 +54,8 @@ sub cgi_main {
 			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print "Basket<br>";
 			print basket_page(read_basket($login));
+			print basket_user_button();
+			#Need print total cost!!
 		
 		} elsif($action eq "View orders") {
 			print hidden_inputs(param("login"),param("password"),param("screen"));
@@ -246,11 +248,12 @@ eof
 
 sub basket_page {
 	my (@isbns) = @_;
-	my $descriptions = get_book_descriptions_basket(@isbns);
+	my ($descriptions,$total) = get_book_descriptions_basket(@isbns);
 	return <<eof;
 	<!--<pre>-->
 			<table bgcolor="white" border="1" align="center"><caption></caption>
 			$descriptions
+			<tr><td><b>Total</b></td> <td></td> <td align="right">$total</td></tr>
 			</table>
 	<!--</pre>-->
 	<p>
@@ -262,6 +265,7 @@ sub get_book_descriptions_basket {
 	my @isbns = @_;
 	my $descriptions = "";
 	our %book_details;
+	my $sum=0;
 	foreach $isbn (@isbns) {
 		die "Internal error: unknown isbn $isbn in print_books\n" if !$book_details{$isbn}; # shouldn't happen
 		my $title = $book_details{$isbn}{title} || "";
@@ -271,11 +275,13 @@ sub get_book_descriptions_basket {
 		$descriptions .= sprintf '<tr><td><img src="%s"></td> <td><i>%s</i><br>%s<br></td> <td align="right"><tt>%7s</tt></td> <td><input class="btn" type="submit" name="action '.$isbn.'" value="Drop"><br>',$book_details{$isbn}{smallimageurl},$title,$authors,$book_details{$isbn}{price};
 		$descriptions .= '<input class="btn" type="submit" name="action '.$isbn.'" value="Details"><br>';
 		$descriptions .= '</td></tr>';
+		my $price=$book_details{$isbn}{price};
+		$price =~ s/\$//g;
+		$sum+=$price;
 	}
 	
 	
-	
-	return $descriptions;
+	return ($descriptions,'$'.$sum);
 }
 
 sub print_user_button {
@@ -297,6 +303,18 @@ sub details_user_button {
 	<input class="btn" type="submit" name="action" value="Add">
 	<input class="btn" type="submit" name="action" value="Basket">
 	<input class="btn" type="submit" name="action" value="Check out">
+	<input class="btn" type="submit" name="action" value="Logout">
+	</td></tr></table>
+	</form>
+eof
+}
+
+sub basket_user_button {
+	return <<eof;
+	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
+	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4">
+	<input class="btn" type="submit" name="action" value="Check out">
+	<input class="btn" type="submit" name="action" value="View Order">
 	<input class="btn" type="submit" name="action" value="Logout">
 	</td></tr></table>
 	</form>
