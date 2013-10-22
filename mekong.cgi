@@ -72,8 +72,7 @@ sub cgi_main {
 		($action,$isbn)=split(' ',$detail);
 		print "$isbn\n";
 		print "yeah\n";
-		print print_books($isbn);
-		#print detail_page();
+		print detail_page($isbn);
 	} else {
 		print login_form();
 	}
@@ -181,6 +180,28 @@ sub get_book_descriptions2 {
 	
 	
 	return $descriptions;
+}
+
+sub detail_page {
+	my $isbn = $_[0];
+	print_books($isbn);
+	return <<eof;
+	<table bgcolor="white" align="center"><tr><td><b>authors</b></td> <td>Jake Page</td></tr>
+	 <tr><td><b>binding</b></td> <td>Hardcover</td></tr>
+	 <tr><td><b>catalog</b></td> <td>Book</td></tr>
+	 <tr><td><b>ean</b></td> <td>9780061456480</td></tr>
+	 <tr><td><b>edition</b></td> <td>1</td></tr>
+	 <tr><td><b>isbn</b></td> <td>0061456489</td></tr>
+	 <tr><td><b>numpages</b></td> <td>224</td></tr>
+	 <tr><td><b>price</b></td> <td>$24.95</td></tr>
+	 <tr><td><b>publication_date</b></td> <td>2008-11-18</td></tr>
+	 <tr><td><b>publisher</b></td> <td>Smithsonian</td></tr>
+	 <tr><td><b>releasedate</b></td> <td>2008-11-18</td></tr>
+	 <tr><td><b>salesrank</b></td> <td>1349717</td></tr>
+	 <tr><td><b>title</b></td> <td>Do Cats Hear with Their Feet?: Where Cats Come From, What We Know About Them, and What They Think About Us</td></tr>
+	 <tr><td><b>year</b></td> <td>2008</td></tr>
+	</table>
+eof
 }
 
 sub print_user_button() {
