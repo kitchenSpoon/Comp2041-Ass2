@@ -7,3 +7,5 @@ Date		Start 		Stop 		Activity 		Comments
 21/10/13	00:10		00:31		Buttons			Make the buttons do some stuff, redirect after creation of accounts
 21/10/13	00:31		01:11		Buttons			Got Details button to redirect somewhere
 22/10/13	13:08		13:53		Detail			Details page
+22/10/13	15:09		15:15		HiddenInputs	Added hidden inputs for pages.
+22/10/13	17:03		20:11		Bug Fixing		Bug Fixing and Dinner and Presentation competition

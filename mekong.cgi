@@ -35,26 +35,23 @@ sub cgi_main {
 	my $login = param('login');
 	my $search_terms = param('search_terms');
 	my $action = param('action');
-	@detail=(param());
-	$detail=shift @detail;
+	@paramKeys=(param());
+	foreach (@paramKeys)
+	{
+		if(/action [a-zA-Z0-9]*/)
+		{
+			$detail=$_;
+		}
+	}
+	print $detail;
 	
-	if (defined $search_terms) {
-		#if($action =~ /[0-9]*/)
-		#{
-		#	details_command($login)
-		#}
-		#else {
-			print hidden_inputs();
-			print search_results($search_terms);
-			print print_user_button();
-		#}
-	} elsif (defined $action) {
+	if (defined $action) {
 		if($action eq "Check out") {
 			print "Check out";
 			#checkout_command($login)
 			
 		} elsif($action eq "View orders") {
-			print hidden_inputs();
+			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print "View Orders";
 			#read_basket($Login)
 		
@@ -67,13 +64,13 @@ sub cgi_main {
 			createAccount(param('login'),param('password'),param('name'),param('street'),param('city'),param('state'),param('postcode'),param('email'));
 			print search_form();
 		} elsif($action eq "Login" && authenticate(param("login"),param("password"))) {
-			print hidden_inputs();
+			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print search_form();
 			print print_user_button();
 		}
 	
 	} elsif (defined $detail && $detail =~ /action [0-9]*/) {
-		print hidden_inputs();
+		print hidden_inputs(param("login"),param("password"),param("screen"));
 		($action,$isbn)=split(' ',$detail);
 		#print param($detail);
 		if(param($detail) eq "Add"){
@@ -81,10 +78,20 @@ sub cgi_main {
 			#add_basket($Login)
 		}
 		else{ # details
-			print hidden_inputs();
 			print detail_page($isbn);
 			print details_user_button();
 		}
+	} elsif (defined $search_terms) {
+		#if($action =~ /[0-9]*/)
+		#{
+		#	details_command($login)
+		#}
+		#else {
+			param(-name=>'screen',-value=>'searchRes');
+			print hidden_inputs(param("login"),param("password"),param("screen"));
+			print search_results($search_terms);
+			print print_user_button();
+		#}
 	} else {
 		print login_form();
 	}
@@ -97,6 +104,7 @@ sub login_form {
 	return <<eof;
 	<p>
 	<form>
+		<input type="hidden" name="screen" value="search">
 		<div>login: <input type="text" name="login" size=16></input></dvi>
 		<div>password: <input type="password" name="password" size=16></input></dvi>
 		<div><input class="btn" type="submit" name="action" value="Login"></div>
@@ -107,11 +115,11 @@ eof
 }
 
 sub hidden_inputs {
-
+	my ($login,$password,$screen)=@_;
 	return <<eof;
-	<input type="hidden" name="screen" value="main">
-	<input type="hidden" name="login" value="jack">
-	<input type="hidden" name="password" value="hahahaha1">
+	<input type="hidden" name="screen" value="$screen">
+	<input type="hidden" name="login" value="$login">
+	<input type="hidden" name="password" value="$password">
 eof
 }
 sub newAccount_form {
@@ -167,18 +175,14 @@ sub search_results {
 	my $descriptions = get_book_descriptions2(@matching_isbns);
 	return <<eof;
 	<!--<p>$search_terms-->
-	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
 		<table align="center"><tr><td align="center">
 			search: <input type="text" name="search_terms" value="$search_terms" size=60></input>
 		</td></tr></table>
-	</form>
 	<!--<p>@matching_isbns-->
 	<!--<pre>-->
-		<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
 			<table bgcolor="white" border="1" align="center"><caption></caption>
 			$descriptions
 			</table>
-		</form>
 	<!--</pre>-->
 	<p>
 eof
