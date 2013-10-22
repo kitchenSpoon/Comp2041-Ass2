@@ -49,11 +49,16 @@ sub cgi_main {
 		if($action eq "Check out") {
 			print "Check out";
 			#checkout_command($login)
-			
+		
+		} elsif($action eq "Basket") {
+			print hidden_inputs(param("login"),param("password"),param("screen"));
+			print "Basket<br>";
+			print basket_page(read_basket($login));
+		
 		} elsif($action eq "View orders") {
 			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print "View Orders";
-			#read_basket($Login)
+			#read_basket($login)
 		
 		} elsif($action eq "Logout") {
 			print "Logout";
@@ -168,7 +173,7 @@ eof
 sub search_results {
 	my ($search_terms) = @_;
 	my @matching_isbns = search_books($search_terms);
-	my $descriptions = get_book_descriptions2(@matching_isbns);
+	my $descriptions = get_book_descriptions_search(@matching_isbns);
 	return <<eof;
 	<!--<p>$search_terms-->
 		<table align="center"><tr><td align="center">
@@ -183,7 +188,7 @@ sub search_results {
 	<p>
 eof
 }
-sub get_book_descriptions2 {
+sub get_book_descriptions_search {
 	my @isbns = @_;
 	my $descriptions = "";
 	our %book_details;
@@ -232,6 +237,40 @@ sub detail_page {
 eof
 	
 	return $ret;
+}
+
+sub basket_page {
+	my (@isbns) = @_;
+	my $descriptions = get_book_descriptions_basket(@isbns);
+	return <<eof;
+	<!--<pre>-->
+			<table bgcolor="white" border="1" align="center"><caption></caption>
+			$descriptions
+			</table>
+	<!--</pre>-->
+	<p>
+eof
+}
+
+
+sub get_book_descriptions_basket {
+	my @isbns = @_;
+	my $descriptions = "";
+	our %book_details;
+	foreach $isbn (@isbns) {
+		die "Internal error: unknown isbn $isbn in print_books\n" if !$book_details{$isbn}; # shouldn't happen
+		my $title = $book_details{$isbn}{title} || "";
+		my $authors = $book_details{$isbn}{authors} || "";
+		$authors =~ s/\n([^\n]*)$/ & $1/g;
+		$authors =~ s/\n/, /g;
+		$descriptions .= sprintf '<tr><td><img src="%s"></td> <td><i>%s</i><br>%s<br></td> <td align="right"><tt>%7s</tt></td> <td><input class="btn" type="submit" name="action '.$isbn.'" value="Drop"><br>',$book_details{$isbn}{smallimageurl},$title,$authors,$book_details{$isbn}{price};
+		$descriptions .= '<input class="btn" type="submit" name="action '.$isbn.'" value="Details"><br>';
+		$descriptions .= '</td></tr>';
+	}
+	
+	
+	
+	return $descriptions;
 }
 
 sub print_user_button {
