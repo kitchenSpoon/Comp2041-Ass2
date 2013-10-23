@@ -48,7 +48,7 @@ sub cgi_main {
 	if (defined $action) {
 		if($action eq "Check out") {
 			print "Check out";
-			#checkout_command($login)
+			checkout_command($login)
 		
 		} elsif($action eq "Basket") {
 			print hidden_inputs(param("login"),param("password"),param("screen"));
