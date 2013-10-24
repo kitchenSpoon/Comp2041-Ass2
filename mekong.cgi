@@ -69,6 +69,7 @@ sub cgi_main {
 			print newAccount_form();
 		} elsif($action eq "Create Account") {
 			createAccount(param('login'),param('password'),param('name'),param('street'),param('city'),param('state'),param('postcode'),param('email'));
+			print hidden_inputs(param("login"),param("password"),param("screen"));	
 			print search_form();
 		} elsif($action eq "Login" && authenticate(param("login"),param("password"))) {
 			print hidden_inputs(param("login"),param("password"),param("screen"));
@@ -287,7 +288,8 @@ sub get_book_descriptions_basket {
 sub print_user_button {
 	return <<eof;
 	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
-	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4"> <input class="btn" type="submit" name="action" value="Basket">
+	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4"> 
+	<input class="btn" type="submit" name="action" value="Basket">
 	<input class="btn" type="submit" name="action" value="Check out">
 	<input class="btn" type="submit" name="action" value="View orders">
 	<input class="btn" type="submit" name="action" value="Logout">
