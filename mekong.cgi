@@ -114,10 +114,16 @@ sub login_form {
 	<p>
 	<form>
 		<input type="hidden" name="screen" value="search">
-		<div>login: <input type="text" name="login" size=16></input></dvi>
-		<div>password: <input type="password" name="password" size=16></input></dvi>
-		<div><input class="btn" type="submit" name="action" value="Login"></div>
-		<div><input class="btn" type="submit" name="action" value="Create New Account"></dvi>
+		<table align="center">
+		<tr><td>login: </td><td><input type="text" name="login" size=16></input></td></tr>
+		<tr><td>password: </td> <td><input type="password" name="password" size=16></input></td></tr>
+		
+		<tr><td align="center" colspan="2"> 
+		<input class="btn" type="submit" name="action" value="Login">
+		<input class="btn" type="submit" name="action" value="Create New Account">
+		</td></tr>
+		</table>
+		
 	</form>
 	<p>
 eof
