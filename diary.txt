@@ -18,3 +18,4 @@ Date		Start 		Stop 		Activity 		Comments
 31/10/13	19:03		20:45		Bugs			Really shitty weird long took lots of reverting bug
 31/10/13	20:45		00:33		Bugs			Change hidden input to fix the REALLY REALLY SHITTY BUG
 01/11/13	00:33		01:23		Bugs			Bugs, and checkout works so does finalize order
+01/11/13	01:23		02:20		View Orders		Got view orders semi working
