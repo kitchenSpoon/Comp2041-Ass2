@@ -94,9 +94,36 @@ sub cgi_main {
 			print basket_user_button(param("login"),param("password"),param("screen"));
 			#Need print total cost!!
 		
-		} elsif($action eq "View orders" && authenticate(param("login"),param("password"))) {
+		} elsif($action eq "View Order" && authenticate(param("login"),param("password"))) {
 			print "View orders";
-			print "View Orders";
+			
+			order_page($login);
+			
+			#open(F,"<","$orders_dir/$login");
+			#my @file=<F>;
+			#print @file;
+			#close F;
+			#print "<br>";
+			
+			#foreach $ordNum(@file)
+			#{
+			#	$retOrder="";
+			#	chomp($ordNum);
+			#	$retOrder.=<<eof;
+			#	<table bgcolor="white" border="1" align="center"><caption>Order #$ordNum - Thu Oct 31 20:02:57 2013<br>Credit Card Number: 1234567890123456 (Expiry 12/33)</caption>
+			#	 <tr><td><img src="http://ecx.images-amazon.com/images/I/51i9Py7%2B88L._SL75_.jpg"></td> <td><i>Dogs: A New Understanding of Canine Origin, Behavior and Evolution</i><br>Raymond Coppinger
+			#	Lorna Coppinger<br></td> <td align="right"><tt>price</tt></td> <td></td></tr>
+			#	 <tr><td><b>Total</b></td> <td></td> <td align="right">totalPrice</td></tr>
+			#	</table><p /><p />
+#eof
+#				print $retOrder;
+#				open(F,"<","$orders_dir/$ordNum");
+#				my @order=<F>;
+#				print @order;
+#				close F;
+#				print "<br>";
+#			}
+			#ILOVEJACK
 			#cat: ./orders/jack
 			#read_basket($login)
 		
@@ -397,6 +424,18 @@ eof
 	finalize_order($login, $credit_card_number, $expiry_date);
 }
 
+sub order_page {
+	my ($login) = @_;
+	print "\n";
+	foreach $order (login_to_orders($login)) {
+		my ($order_time, $credit_card_number, $expiry_date, @isbns) = read_order($order);
+		$order_time = localtime($order_time);
+		print "Order #$order - $order_time\n";
+		print "Credit Card Number: $credit_card_number (Expiry $expiry_date)\n";
+		print basket_page(read_basket($login));
+		print "\n";
+	}
+}
 sub print_user_button {
 	my($login,$password,$screen)=@_;
 	$ret.=<<eof;
