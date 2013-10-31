@@ -46,13 +46,16 @@ sub cgi_main {
 	#print $detail;
 	
 	if (defined $action) {
+		print "action";
 		if($action eq "Check out" && authenticate(param("login"),param("password"))) {
+			print "Checkout";
 			#authenticate(param("login"),param("password"))
 			print "Check out";
 			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print checkout_page($login);
 		
-		} elsif($action eq "Basket" && authenticate(param("login"),param("password"))) {
+		} elsif($action eq "Basket") {
+			print "Basket";
 			authenticate(param("login"),param("password"));
 			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print "Basket<br>";
@@ -61,6 +64,7 @@ sub cgi_main {
 			#Need print total cost!!
 		
 		} elsif($action eq "View orders" && authenticate(param("login"),param("password"))) {
+			print "View orders";
 			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print "View Orders";
 			#cat: ./orders/jack
@@ -70,15 +74,22 @@ sub cgi_main {
 			print "Logout";
 		
 		} elsif($action eq "Create New Account") {
+			print "Create new account";
 			print newAccount_form();
 		} elsif($action eq "Create Account") {
+			print "Create account";
 			createAccount(param('login'),param('password'),param('name'),param('street'),param('city'),param('state'),param('postcode'),param('email'));
 			print hidden_inputs(param("login"),param("password"),param("screen"));	
 			print search_form();
-		} elsif($action eq "Login" && authenticate(param("login"),param("password"))) {
+		} elsif($action eq "Login") {
+			print "Login Search";
 			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print search_form();
 			print print_user_button();
+		}
+		else
+		{
+			print "what happen";
 		}
 	
 	} elsif (defined $detail && $detail =~ /action [0-9]*/) {
@@ -86,26 +97,31 @@ sub cgi_main {
 		($action,$isbn)=split(' ',$detail);
 		#print param($detail);
 		if(param($detail) eq "Add"){
+			print "addBasket";
 			add_basket($login,$isbn);
 			print search_results($search_terms);
 			print print_user_button();
 		}
 		elsif(param($detail) eq "Drop")
 		{
+			print "deleteBasket";
 			delete_basket($login,$isbn);
 			print basket_page(read_basket($login));
 		}
 		else{ # details
+			print "Detail";
 			print detail_page($isbn);
 			print details_user_button();
 		}
 	} elsif (defined $search_terms) {
+			print "search terms";
 			param(-name=>'screen',-value=>'searchRes');
 			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print search_results($search_terms);
 			print print_user_button();
 		#}
 	} else {
+		print "loginform";
 		print login_form();
 	}
 	
@@ -181,9 +197,11 @@ sub createAccount {
 sub search_form {
 	return <<eof;
 	<p>
+	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
 	<table align="center"><tr><td align="center">
 		search: <input type="text" name="search_terms" size=60></input>
 	</td></tr></table>
+	</form>
 	<p>
 eof
 }
