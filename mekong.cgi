@@ -112,7 +112,7 @@ sub cgi_main {
 sub login_form {
 	return <<eof;
 	<p>
-	<form>
+	<form action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
 		<input type="hidden" name="screen" value="search">
 		<table align="center">
 		<tr><td>login: </td><td><input type="text" name="login" size=16></input></td></tr>
@@ -176,9 +176,9 @@ sub createAccount {
 sub search_form {
 	return <<eof;
 	<p>
-	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
+	<table align="center"><tr><td align="center">
 		search: <input type="text" name="search_terms" size=60></input>
-	</form>
+	</td></tr></table>
 	<p>
 eof
 }
