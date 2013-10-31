@@ -52,6 +52,7 @@ sub cgi_main {
 			#authenticate(param("login"),param("password"))
 			print "Check out";
 			print hidden_inputs(param("login"),param("password"),param("screen"));
+			print basket_page(read_basket($login));
 			print checkout_page($login);
 		
 		} elsif($action eq "Basket") {
@@ -89,7 +90,9 @@ sub cgi_main {
 		}
 		else
 		{
-			print "what happen";
+			print "$last_error";
+			print "loginform";
+			print login_form();
 		}
 	
 	} elsif (defined $detail && $detail =~ /action [0-9]*/) {
@@ -319,11 +322,25 @@ sub get_book_descriptions_basket {
 sub checkout_page {
 	my ($login) = @_;
 	my @basket_isbns = read_basket($login);
+	$ret="";
 	if (!@basket_isbns) {
-		print "Your shopping basket is empty.\n";
-		return;
+		$ret.="Your shopping basket is empty.\n";
+		return $ret;
 	}
-	print "Shipping Details:\n$user_details{name}\n$user_details{street}\n$user_details{city}\n$user_details{state}, $user_details{postcode}\n\n";
+	$ret.=<<eof;
+	<b>Shipping Details:</b>
+	<pre>\n$user_details{name},\n$user_details{street},\n$user_details{city},\n$user_details{state}, \n$user_details{postcode}\n</pre>
+	
+	<table align="center"><caption><font color=red></font></caption> <tr><td>Credit Card Number:</td> <td><input type="text" name="credit_card_number"  width="16" /></td></tr>
+	 <tr><td>Expiry date (mm/yy):</td> <td><input type="text" name="expiry_date"  width="5" /></td></tr>
+	 <tr><td align="center" colspan="4"> <input class="btn" type="submit" name="action" value="Basket">
+	  <input class="btn" type="submit" name="action" value="Finalize Order">
+	  <input class="btn" type="submit" name="action" value="View orders">
+	  <input class="btn" type="submit" name="action" value="Logout">
+	</td></tr></table>
+eof
+	return $ret;
+	
 	print_books(@basket_isbns);
 	printf "Total: %11s\n", sprintf("\$%.2f", total_books(@basket_isbns));
 	print "\n";
