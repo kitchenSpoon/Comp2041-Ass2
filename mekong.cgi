@@ -55,13 +55,13 @@ sub cgi_main {
 			print basket_page(read_basket($login));
 			print checkout_page($login);
 		
-		} elsif($action eq "Basket") {
+		} elsif($action eq "Basket" && authenticate(param("login"),param("password"))) {
 			print "Basket";
 			authenticate(param("login"),param("password"));
 			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print "Basket<br>";
 			print basket_page(read_basket($login));
-			print basket_user_button();
+			print basket_user_button(param("login"),param("password"),param("screen"));
 			#Need print total cost!!
 		
 		} elsif($action eq "View orders" && authenticate(param("login"),param("password"))) {
@@ -86,7 +86,7 @@ sub cgi_main {
 			print "Login Search";
 			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print search_form();
-			print print_user_button();
+			print print_user_button(param("login"),param("password"),param("screen"));
 		}
 		else
 		{
@@ -102,8 +102,9 @@ sub cgi_main {
 		if(param($detail) eq "Add"){
 			print "addBasket";
 			add_basket($login,$isbn);
+			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print search_results($search_terms);
-			print print_user_button();
+			print print_user_button(param("login"),param("password"),param("screen"));
 		}
 		elsif(param($detail) eq "Drop")
 		{
@@ -113,15 +114,16 @@ sub cgi_main {
 		}
 		else{ # details
 			print "Detail";
+			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print detail_page($isbn);
-			print details_user_button();
+			print details_user_button(param("login"),param("password"),param("screen"));
 		}
 	} elsif (defined $search_terms) {
 			print "search terms";
 			param(-name=>'screen',-value=>'searchRes');
 			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print search_results($search_terms);
-			print print_user_button();
+			print print_user_button(param("login"),param("password"),param("screen"));
 		#}
 	} else {
 		print "loginform";
@@ -368,9 +370,13 @@ eof
 }
 
 sub print_user_button {
-	return <<eof;
+	my($login,$password,$screen)=@_;
+	$ret.=<<eof;
 	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
 	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4"> 
+eof
+	$ret.=hidden_inputs(param("login"),param("password"),param("screen"));
+	$ret.=<<eof;
 	<input class="btn" type="submit" name="action" value="Basket">
 	<input class="btn" type="submit" name="action" value="Check out">
 	<input class="btn" type="submit" name="action" value="View orders">
@@ -378,12 +384,17 @@ sub print_user_button {
 	</td></tr></table>
 	</form>
 eof
+	return $ret;
 }
 
 sub details_user_button {
-	return <<eof;
+	my($login,$password,$screen)=@_;
+	$ret.=<<eof;
 	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
 	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4">
+eof
+	$ret.=hidden_inputs(param("login"),param("password"),param("screen"));
+	$ret.=<<eof;
 	<input class="btn" type="submit" name="action" value="Add">
 	<input class="btn" type="submit" name="action" value="Basket">
 	<input class="btn" type="submit" name="action" value="Check out">
@@ -391,18 +402,24 @@ sub details_user_button {
 	</td></tr></table>
 	</form>
 eof
+	return $ret;
 }
 
 sub basket_user_button {
-	return <<eof;
+	my($login,$password,$screen)=@_;
+	$ret.=<<eof;
 	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
 	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4">
+eof
+	$ret.=hidden_inputs(param("login"),param("password"),param("screen"));
+	$ret.=<<eof;
 	<input class="btn" type="submit" name="action" value="Check out">
 	<input class="btn" type="submit" name="action" value="View Order">
 	<input class="btn" type="submit" name="action" value="Logout">
 	</td></tr></table>
 	</form>
 eof
+	return $ret;
 }
 
 #
