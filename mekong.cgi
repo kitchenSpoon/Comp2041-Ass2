@@ -46,23 +46,27 @@ sub cgi_main {
 	#print $detail;
 	
 	if (defined $action) {
-		if($action eq "Check out") {
+		if($action eq "Check out" && authenticate(param("login"),param("password"))) {
+			#authenticate(param("login"),param("password"))
 			print "Check out";
-			checkout_command($login)
+			print hidden_inputs(param("login"),param("password"),param("screen"));
+			print checkout_page($login);
 		
-		} elsif($action eq "Basket") {
+		} elsif($action eq "Basket" && authenticate(param("login"),param("password"))) {
+			authenticate(param("login"),param("password"));
 			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print "Basket<br>";
 			print basket_page(read_basket($login));
 			print basket_user_button();
 			#Need print total cost!!
 		
-		} elsif($action eq "View orders") {
+		} elsif($action eq "View orders" && authenticate(param("login"),param("password"))) {
 			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print "View Orders";
+			#cat: ./orders/jack
 			#read_basket($login)
 		
-		} elsif($action eq "Logout") {
+		} elsif($action eq "Logout" && authenticate(param("login"),param("password"))) {
 			print "Logout";
 		
 		} elsif($action eq "Create New Account") {
@@ -156,6 +160,7 @@ sub newAccount_form {
 eof
 }
 
+#create 
 sub createAccount {
 	my ($login,$password,$name,$street,$city,$state,$postcode,$email) = @_;
 	open (F,">users/$login");
@@ -183,7 +188,7 @@ sub search_form {
 eof
 }
 
-# ascii display of search results
+#search
 sub search_results {
 	my ($search_terms) = @_;
 	my @matching_isbns = search_books($search_terms);
@@ -222,6 +227,7 @@ sub get_book_descriptions_search {
 	return $descriptions;
 }
 
+#detail
 sub detail_page {
 	my $isbn = $_[0];
 	#print_books($isbn);
@@ -253,6 +259,7 @@ eof
 	return $ret;
 }
 
+#basket
 sub basket_page {
 	my (@isbns) = @_;
 	my ($descriptions,$total) = get_book_descriptions_basket(@isbns);
@@ -289,6 +296,40 @@ sub get_book_descriptions_basket {
 	
 	
 	return ($descriptions,'$'.$sum);
+}
+
+sub checkout_page {
+	my ($login) = @_;
+	my @basket_isbns = read_basket($login);
+	if (!@basket_isbns) {
+		print "Your shopping basket is empty.\n";
+		return;
+	}
+	print "Shipping Details:\n$user_details{name}\n$user_details{street}\n$user_details{city}\n$user_details{state}, $user_details{postcode}\n\n";
+	print_books(@basket_isbns);
+	printf "Total: %11s\n", sprintf("\$%.2f", total_books(@basket_isbns));
+	print "\n";
+	my ($credit_card_number, $expiry_date);
+	while (1) {
+			print "Credit Card Number: ";
+			$credit_card_number = <>;
+			exit 1 if !$credit_card_number;
+			$credit_card_number =~ s/\s//g;
+			next if !$credit_card_number;
+			last if $credit_card_number =~ /^\d{16}$/;
+			last if legal_credit_card_number($credit_card_number);
+			print "$last_error\n";
+	}
+	while (1) {
+			print "Expiry date (mm/yy): ";
+			$expiry_date = <>;
+			exit 1 if !$expiry_date;
+			$expiry_date =~ s/\s//g;
+			next if !$expiry_date;
+			last if legal_expiry_date($expiry_date);
+			print "$last_error\n";
+	}
+	finalize_order($login, $credit_card_number, $expiry_date);
 }
 
 sub print_user_button {

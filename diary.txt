@@ -14,3 +14,4 @@ Date		Start 		Stop 		Activity 		Comments
 22/10/13	21:03		21:11		Basket Drop		Basket Drop works
 22/10/13	22:33		22:57		Basket 			Added Total Price on Basket page
 31/10/13	17:20		17:58		Basket Bugs		Change alignment and fixed bug with basket
+31/10/13	18:03		18:36		Checkout		Checkout
