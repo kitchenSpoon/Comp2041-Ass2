@@ -47,18 +47,48 @@ sub cgi_main {
 	
 	if (defined $action) {
 		print "action";
+		print param("login")," ";
+		print param("password")," ";
 		if($action eq "Check out" && authenticate(param("login"),param("password"))) {
 			print "Checkout";
-			#authenticate(param("login"),param("password"))
-			print "Check out";
-			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print basket_page(read_basket($login));
 			print checkout_page($login);
+			
+		} elsif($action eq "Finalize Order" && authenticate(param("login"),param("password"))) {
+			print "Finalize Order";
+			
+			my ($credit_card_number, $expiry_date);
+			$credit_card_number=param("credit_card_number");
+			$expiry_date=param("expiry_date");
+			$credit_card_number =~ s/\s//g;
+			$expiry_date =~ s/\s//g;
+			
+			if($credit_card_number && $credit_card_number =~ /^\d{16}$/ && legal_credit_card_number($credit_card_number))
+			{
+				if($expiry_date && legal_expiry_date($expiry_date))
+				{
+					finalize_order($login, $credit_card_number, $expiry_date);
+					print search_form();
+					print print_user_button(param("login"),param("password"),param("screen"));
+				}
+				else
+				{
+					print "Invalid Expiry Date";
+				}
+			}
+			else
+			{
+				print "Invalid Credit Card";
+			}
+			
 		
+			
+			
+			
+			
+			
 		} elsif($action eq "Basket" && authenticate(param("login"),param("password"))) {
 			print "Basket";
-			authenticate(param("login"),param("password"));
-			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print "Basket<br>";
 			print basket_page(read_basket($login));
 			print basket_user_button(param("login"),param("password"),param("screen"));
@@ -66,7 +96,6 @@ sub cgi_main {
 		
 		} elsif($action eq "View orders" && authenticate(param("login"),param("password"))) {
 			print "View orders";
-			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print "View Orders";
 			#cat: ./orders/jack
 			#read_basket($login)
@@ -80,23 +109,20 @@ sub cgi_main {
 		} elsif($action eq "Create Account") {
 			print "Create account";
 			createAccount(param('login'),param('password'),param('name'),param('street'),param('city'),param('state'),param('postcode'),param('email'));
-			print hidden_inputs(param("login"),param("password"),param("screen"));	
 			print search_form();
-		} elsif($action eq "Login") {
+		} elsif($action eq "Login" && authenticate(param("login"),param("password"))) {
 			print "Login Search";
-			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print search_form();
 			print print_user_button(param("login"),param("password"),param("screen"));
 		}
 		else
 		{
-			print "$last_error";
-			print "loginform";
+			print " $last_error ";
+			print " loginform ";
 			print login_form();
 		}
 	
 	} elsif (defined $detail && $detail =~ /action [0-9]*/) {
-		print hidden_inputs(param("login"),param("password"),param("screen"));
 		($action,$isbn)=split(' ',$detail);
 		#print param($detail);
 		if(param($detail) eq "Add"){
@@ -114,14 +140,12 @@ sub cgi_main {
 		}
 		else{ # details
 			print "Detail";
-			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print detail_page($isbn);
 			print details_user_button(param("login"),param("password"),param("screen"));
 		}
 	} elsif (defined $search_terms) {
 			print "search terms";
 			param(-name=>'screen',-value=>'searchRes');
-			print hidden_inputs(param("login"),param("password"),param("screen"));
 			print search_results($search_terms);
 			print print_user_button(param("login"),param("password"),param("screen"));
 		#}
@@ -321,6 +345,7 @@ sub get_book_descriptions_basket {
 	return ($descriptions,'$'.$sum);
 }
 
+#check out
 sub checkout_page {
 	my ($login) = @_;
 	my @basket_isbns = read_basket($login);
@@ -330,16 +355,19 @@ sub checkout_page {
 		return $ret;
 	}
 	$ret.=<<eof;
-	<b>Shipping Details:</b>
-	<pre>\n$user_details{name},\n$user_details{street},\n$user_details{city},\n$user_details{state}, \n$user_details{postcode}\n</pre>
-	
-	<table align="center"><caption><font color=red></font></caption> <tr><td>Credit Card Number:</td> <td><input type="text" name="credit_card_number"  width="16" /></td></tr>
-	 <tr><td>Expiry date (mm/yy):</td> <td><input type="text" name="expiry_date"  width="5" /></td></tr>
-	 <tr><td align="center" colspan="4"> <input class="btn" type="submit" name="action" value="Basket">
-	  <input class="btn" type="submit" name="action" value="Finalize Order">
-	  <input class="btn" type="submit" name="action" value="View orders">
-	  <input class="btn" type="submit" name="action" value="Logout">
-	</td></tr></table>
+	<b>Shipping Details:</b><pre>\n$user_details{name},\n$user_details{street},\n$user_details{city},\n$user_details{state}, \n$user_details{postcode}\n</pre>
+eof
+	$ret.='<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">';
+	$ret.=hidden_inputs(param("login"),param("password"),param("screen"));
+	$ret.=<<eof;
+		<p /><table align="center"><caption><font color=red></font></caption> <tr><td>Credit Card Number:</td> <td><input type="text" name="credit_card_number"  width="16" /></td></tr>
+		 <tr><td>Expiry date (mm/yy):</td> <td><input type="text" name="expiry_date"  width="5" /></td></tr>
+		 <tr><td align="center" colspan="4"> <input class="btn" type="submit" name="action" value="Basket">
+		  <input class="btn" type="submit" name="action" value="Finalize Order">
+		  <input class="btn" type="submit" name="action" value="View orders">
+		  <input class="btn" type="submit" name="action" value="Logout">
+		</td></tr></table>
+	</form>
 eof
 	return $ret;
 	
