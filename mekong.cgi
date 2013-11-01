@@ -157,8 +157,17 @@ sub cgi_main {
 			print "addBasket";
 			add_basket($login,$isbn);
 			#print hidden_inputs(param("login"),param("password"),param("screen"));
-			print search_results($search_terms);
-			print print_user_button(param("login"),param("password"),param("screen"));
+			if(param("screen") eq "Details")
+			{
+				print detail_page($isbn);
+				print details_user_button(param("login"),param("password"),param("screen"),$detail);
+			}
+			else
+			{
+				print search_results($search_terms);
+				print print_user_button(param("login"),param("password"),param("screen"));
+			}
+			
 		}
 		elsif(param($detail) eq "Drop")
 		{
@@ -169,7 +178,7 @@ sub cgi_main {
 		else{ # details
 			print "Detail";
 			print detail_page($isbn);
-			print details_user_button(param("login"),param("password"),param("screen"));
+			print details_user_button(param("login"),param("password"),param("screen"),$detail);
 		}
 	} elsif (defined $search_terms) {
 			print "search terms";
@@ -471,7 +480,7 @@ sub print_orders_button {
 	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
 	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4"> 
 eof
-	$ret.=hidden_inputs(param("login"),param("password"),param("screen"));
+	$ret.=hidden_inputs($login,$password,$screen);
 	$ret.=<<eof;
 	<input class="btn" type="submit" name="action" value="Basket">
 	<input class="btn" type="submit" name="action" value="Check out">
@@ -488,7 +497,7 @@ sub print_user_button {
 	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
 	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4"> 
 eof
-	$ret.=hidden_inputs(param("login"),param("password"),param("screen"));
+	$ret.=hidden_inputs($login,$password,$screen);
 	$ret.=<<eof;
 	<input class="btn" type="submit" name="action" value="Basket">
 	<input class="btn" type="submit" name="action" value="Check out">
@@ -501,14 +510,14 @@ eof
 }
 
 sub details_user_button {
-	my($login,$password,$screen)=@_;
+	my($login,$password,$screen,$detail)=@_;
 	my $ret.=<<eof;
 	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
 	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4">
 eof
-	$ret.=hidden_inputs(param("login"),param("password"),param("screen"));
+	$ret.=hidden_inputs($login,$password,"Details");
 	$ret.=<<eof;
-	<input class="btn" type="submit" name="action" value="Add">
+	<input class="btn" type="submit" name="$detail" value="Add">
 	<input class="btn" type="submit" name="action" value="Basket">
 	<input class="btn" type="submit" name="action" value="Check out">
 	<input class="btn" type="submit" name="action" value="Logout">
@@ -524,7 +533,7 @@ sub basket_user_button {
 	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
 	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4">
 eof
-	$ret.=hidden_inputs(param("login"),param("password"),param("screen"));
+	$ret.=hidden_inputs($login,$password,$screen);
 	$ret.=<<eof;
 	<input class="btn" type="submit" name="action" value="Check out">
 	<input class="btn" type="submit" name="action" value="View orders">
