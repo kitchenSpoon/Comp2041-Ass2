@@ -68,7 +68,7 @@ sub cgi_main {
 				if($expiry_date && legal_expiry_date($expiry_date))
 				{
 					finalize_order($login, $credit_card_number, $expiry_date);
-					print search_form();
+					print search_form(param("login"),param("password"),param("screen"));
 					print print_user_button(param("login"),param("password"),param("screen"));
 				}
 				else
@@ -89,15 +89,16 @@ sub cgi_main {
 			
 		} elsif($action eq "Basket" && authenticate(param("login"),param("password"))) {
 			print "Basket";
-			print "Basket<br>";
+			print search_form(param("login"),param("password"),param("screen"));
 			print basket_page(read_basket($login));
 			print basket_user_button(param("login"),param("password"),param("screen"));
 			#Need print total cost!!
 		
-		} elsif($action eq "View Order" && authenticate(param("login"),param("password"))) {
+		} elsif($action eq "View orders" && authenticate(param("login"),param("password"))) {
 			print "View orders";
 			
 			order_page($login);
+			print print_orders_button(param("login"),param("password"),param("screen"));
 			
 			#open(F,"<","$orders_dir/$login");
 			#my @file=<F>;
@@ -136,10 +137,10 @@ sub cgi_main {
 		} elsif($action eq "Create Account") {
 			print "Create account";
 			createAccount(param('login'),param('password'),param('name'),param('street'),param('city'),param('state'),param('postcode'),param('email'));
-			print search_form();
+			print search_form(param("login"),param("password"),param("screen"));
 		} elsif($action eq "Login" && authenticate(param("login"),param("password"))) {
 			print "Login Search";
-			print search_form();
+			print search_form(param("login"),param("password"),param("screen"));
 			print print_user_button(param("login"),param("password"),param("screen"));
 		}
 		else
@@ -155,7 +156,7 @@ sub cgi_main {
 		if(param($detail) eq "Add"){
 			print "addBasket";
 			add_basket($login,$isbn);
-			print hidden_inputs(param("login"),param("password"),param("screen"));
+			#print hidden_inputs(param("login"),param("password"),param("screen"));
 			print search_results($search_terms);
 			print print_user_button(param("login"),param("password"),param("screen"));
 		}
@@ -251,20 +252,26 @@ sub createAccount {
 }
 # simple search form
 sub search_form {
-	return <<eof;
+	my($login,$password,$screen)=@_;
+	my $ret.=<<eof;
 	<p>
 	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
+eof
+	$ret.=hidden_inputs(param("login"),param("password"),param("screen"));
+	$ret.=<<eof;
 	<table align="center"><tr><td align="center">
 		search: <input type="text" name="search_terms" size=60></input>
 	</td></tr></table>
 	</form>
 	<p>
+	<!--Testing-->
 eof
+	return $ret;
 }
 
 #search
 sub search_results {
-	my ($search_terms) = @_;
+	my ($search_terms,) = @_;
 	my @matching_isbns = search_books($search_terms);
 	my $descriptions = get_book_descriptions_search(@matching_isbns);
 	return <<eof;
@@ -279,6 +286,7 @@ sub search_results {
 			</table>
 	<!--</pre>-->
 	<p>
+	<!--NOT ME-->
 eof
 }
 sub get_book_descriptions_search {
@@ -336,13 +344,22 @@ eof
 #basket
 sub basket_page {
 	my (@isbns) = @_;
+	if(@isbns==0)
+	{
+		return <<eof;
+		<table bgcolor="white" align="center">
+		<tr><td>You have nothing!</td></tr>
+		</table>
+		<br>
+eof
+	}
 	my ($descriptions,$total) = get_book_descriptions_basket(@isbns);
 	return <<eof;
 	<!--<pre>-->
-			<table bgcolor="white" border="1" align="center"><caption></caption>
-			$descriptions
-			<tr><td><b>Total</b></td> <td></td> <td align="right">$total</td></tr>
-			</table>
+		<table bgcolor="white" border="1" align="center"><caption></caption>
+		$descriptions
+		<tr><td><b>Total</b></td> <td></td> <td align="right">$total</td></tr>
+		</table>
 	<!--</pre>-->
 	<p>
 eof
@@ -355,7 +372,11 @@ sub get_book_descriptions_basket {
 	our %book_details;
 	my $sum=0;
 	foreach $isbn (@isbns) {
-		die "Internal error: unknown isbn $isbn in print_books\n" if !$book_details{$isbn}; # shouldn't happen
+		if (!$book_details{$isbn}) # shouldn't happen
+		{
+			#print "Internal error: unknown isbn $isbn in print_books\n" ;
+			last;
+		}
 		my $title = $book_details{$isbn}{title} || "";
 		my $authors = $book_details{$isbn}{authors} || "";
 		$authors =~ s/\n([^\n]*)$/ & $1/g;
@@ -424,21 +445,46 @@ eof
 	finalize_order($login, $credit_card_number, $expiry_date);
 }
 
+#View orders
 sub order_page {
 	my ($login) = @_;
 	print "\n";
+	my $ret="";
 	foreach $order (login_to_orders($login)) {
 		my ($order_time, $credit_card_number, $expiry_date, @isbns) = read_order($order);
 		$order_time = localtime($order_time);
-		print "Order #$order - $order_time\n";
-		print "Credit Card Number: $credit_card_number (Expiry $expiry_date)\n";
-		print basket_page(read_basket($login));
-		print "\n";
+		$ret="";
+		$ret.=<<eof;
+		<table bgcolor="white" align="center">
+		<tr><td align="center">Order #$order - $order_time</td></tr>
+		<tr><td align="center">Credit Card Number: $credit_card_number (Expiry $expiry_date)</td></tr>
+		</table>
+eof
+		$ret.=basket_page(@isbns);
+		print $ret;
 	}
 }
-sub print_user_button {
+
+sub print_orders_button {
 	my($login,$password,$screen)=@_;
 	$ret.=<<eof;
+	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
+	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4"> 
+eof
+	$ret.=hidden_inputs(param("login"),param("password"),param("screen"));
+	$ret.=<<eof;
+	<input class="btn" type="submit" name="action" value="Basket">
+	<input class="btn" type="submit" name="action" value="Check out">
+	<input class="btn" type="submit" name="action" value="Logout">
+	</td></tr></table>
+	</form>
+eof
+	return $ret;
+}
+
+sub print_user_button {
+	my($login,$password,$screen)=@_;
+	my $ret.=<<eof;
 	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
 	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4"> 
 eof
@@ -456,7 +502,7 @@ eof
 
 sub details_user_button {
 	my($login,$password,$screen)=@_;
-	$ret.=<<eof;
+	my $ret.=<<eof;
 	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
 	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4">
 eof
@@ -474,14 +520,14 @@ eof
 
 sub basket_user_button {
 	my($login,$password,$screen)=@_;
-	$ret.=<<eof;
+	my $ret.=<<eof;
 	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
 	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4">
 eof
 	$ret.=hidden_inputs(param("login"),param("password"),param("screen"));
 	$ret.=<<eof;
 	<input class="btn" type="submit" name="action" value="Check out">
-	<input class="btn" type="submit" name="action" value="View Order">
+	<input class="btn" type="submit" name="action" value="View orders">
 	<input class="btn" type="submit" name="action" value="Logout">
 	</td></tr></table>
 	</form>
