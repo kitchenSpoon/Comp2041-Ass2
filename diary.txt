@@ -20,3 +20,5 @@ Date		Start 		Stop 		Activity 		Comments
 01/11/13	00:33		01:23		Bugs			Bugs, and checkout works so does finalize order
 01/11/13	01:23		02:20		View Orders		Got view orders semi working
 01/11/13	17:30		18:17		View Orders		Got view orders 3 quarter working and fix some bugs
+01/11/13	18:17		19:44		Add				Fixed Add on Details page
+02/11/13	09:35		09:42		Social Sharing	Added AddThis social sharing buttons
