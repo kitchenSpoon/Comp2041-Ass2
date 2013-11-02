@@ -29,6 +29,7 @@ exit 0;
 
 sub cgi_main {
 	print page_header();
+	print $ENV{"SCRIPT_URI"};
 	
 	set_global_variables();
 	read_books($books_file);
@@ -148,7 +149,7 @@ sub cgi_main {
 			print "Create account";
 			my $email = param("email");
 			my $user = param("login");
-			my $msg = "Please Activate your new account by clicking this link http://cgi.cse.unsw.edu.au/~jwli898/ass2/mekong.cgi?action=activate&user=$user";
+			my $msg = "Please Activate your new account by clicking this link ".$ENV{"SCRIPT_URI"}."?action=activate&user=$user";
 			`echo "$msg" |mail -s 'Please Activate your new account' -- $email`;
 			createTempAccount(param('login'),param('password'),param('name'),param('street'),param('city'),param('state'),param('postcode'),param('email'));	
 			print login_form();
@@ -188,7 +189,7 @@ sub cgi_main {
 				}
 			}
 			close F;
-			$msg="Please click on this link http://cgi.cse.unsw.edu.au/~jwli898/ass2/mekong.cgi?action=Reset&user=$username&email=$email";
+			$msg="Please click on this link ".$ENV{"SCRIPT_URI"}."?action=Reset&user=$username&email=$email";
 			`echo "$msg" |mail -s 'Mekong password recovery' -- $email`;
 		}
 		elsif($action eq "Reset")
@@ -244,6 +245,7 @@ sub cgi_main {
 		else
 		{
 			print " $last_error ";
+			
 			print " loginform ";
 			print login_form();
 		}
@@ -285,6 +287,7 @@ sub cgi_main {
 			print print_user_button(param("login"),param("password"),param("screen"));
 		#}
 	} else {
+		
 		print "loginform";
 		print login_form();
 	}
@@ -296,7 +299,7 @@ sub cgi_main {
 sub login_form {
 	return <<eof;
 	<p>
-	<form action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
+	<form method="post" action="$ENV{"SCRIPT_URI"}" enctype="multipart/form-data">
 		<input type="hidden" name="screen" value="search">
 		<table align="center">
 		<tr><td>login: </td><td><input type="text" name="login" size=16></input></td></tr>
@@ -317,7 +320,7 @@ eof
 sub forget_password_form {
 	return <<eof;
 	<div align="center">
-	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
+	<form method="post" action="$ENV{"SCRIPT_URI"}" enctype="multipart/form-data">
 		<input type="text" name="username" placeholder="Username" size=60></input><br>
 		<input class="btn" type="submit" name="action" value="Send Email">
 	</form>
@@ -329,7 +332,7 @@ sub reset_password_form {
 	my($username,$email)=@_;
 	return <<eof;
 	<div align="center">
-	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
+	<form method="post" action="$ENV{"SCRIPT_URI"}" enctype="multipart/form-data">
 		<input type="hidden" name="user" value="$username">
 		<input type="hidden" name="email" value="$email">
 		<input type="text" name="newPass" placeholder="New Password" size=60></input><br>
@@ -349,7 +352,7 @@ eof
 }
 sub newAccount_form {
 	return <<eof;
-	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
+	<form method="post" action="$ENV{"SCRIPT_URI"}" enctype="multipart/form-data">
 	<input type="hidden" name="screen" value="new_account"><p /><p />
 	<table align="center"><caption><font color=red></font></caption> <tr><td>Login:</td> <td><input type="text" name="login"  width="10" /></td></tr>
 	 <tr><td>Password:</td> <td><input type="password" name="password"  width="10" /></td></tr>
@@ -394,7 +397,7 @@ sub search_form {
 	my($login,$password,$screen)=@_;
 	my $ret.=<<eof;
 	<p>
-	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
+	<form method="post" action="$ENV{"SCRIPT_URI"}" enctype="multipart/form-data">
 eof
 	$ret.=hidden_inputs(param("login"),param("password"),param("screen"));
 	$ret.=<<eof;
@@ -544,7 +547,7 @@ sub checkout_page {
 	$ret.=<<eof;
 	<b>Shipping Details:</b><pre>\n$user_details{name},\n$user_details{street},\n$user_details{city},\n$user_details{state}, \n$user_details{postcode}\n</pre>
 eof
-	$ret.='<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">';
+	$ret.='<form method="post" action="$ENV{"SCRIPT_URI"}" enctype="multipart/form-data">';
 	$ret.=hidden_inputs(param("login"),param("password"),param("screen"));
 	$ret.=<<eof;
 		<p /><table align="center"><caption><font color=red></font></caption> <tr><td>Credit Card Number:</td> <td><input type="text" name="credit_card_number"  width="16" /></td></tr>
@@ -607,7 +610,7 @@ eof
 sub print_orders_button {
 	my($login,$password,$screen)=@_;
 	$ret.=<<eof;
-	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
+	<form method="post" action="$ENV{"SCRIPT_URI"}" enctype="multipart/form-data">
 	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4"> 
 eof
 	$ret.=hidden_inputs($login,$password,$screen);
@@ -624,7 +627,7 @@ eof
 sub print_user_button {
 	my($login,$password,$screen)=@_;
 	my $ret.=<<eof;
-	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
+	<form method="post" action="$ENV{"SCRIPT_URI"}" enctype="multipart/form-data">
 	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4"> 
 eof
 	$ret.=hidden_inputs($login,$password,$screen);
@@ -642,7 +645,7 @@ eof
 sub details_user_button {
 	my($login,$password,$screen,$detail)=@_;
 	my $ret.=<<eof;
-	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
+	<form method="post" action="$ENV{"SCRIPT_URI"}" enctype="multipart/form-data">
 	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4">
 eof
 	$ret.=hidden_inputs($login,$password,"Details");
@@ -660,7 +663,7 @@ eof
 sub basket_user_button {
 	my($login,$password,$screen)=@_;
 	my $ret.=<<eof;
-	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
+	<form method="post" action="$ENV{"SCRIPT_URI"}" enctype="multipart/form-data">
 	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4">
 eof
 	$ret.=hidden_inputs($login,$password,$screen);
@@ -706,7 +709,7 @@ Content-Type: text/html
 <body>
 <p>
 <div class="container">
-<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
+<form method="post" action="$ENV{"SCRIPT_URI"}" enctype="multipart/form-data">
 eof
 }
 
