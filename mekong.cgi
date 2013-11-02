@@ -4,6 +4,7 @@
 # http://www.cse.unsw.edu.au/~cs2041/assignments/mekong/
 
 use CGI qw/:all/;
+#use Mail::Sendmail;
 
 $debug = 0;
 $| = 1;
@@ -51,8 +52,17 @@ sub cgi_main {
 		print param("password")," ";
 		if($action eq "Check out" && authenticate(param("login"),param("password"))) {
 			print "Checkout";
-			print basket_page(read_basket($login));
-			print checkout_page($login);
+			if (!read_basket($login))
+			{
+				print search_form(param("login"),param("password"),param("screen"));
+				print print_user_button(param("login"),param("password"),param("screen"));
+			}
+			else
+			{
+				print basket_page(read_basket($login));
+				print checkout_page($login);
+			}
+			
 			
 		} elsif($action eq "Finalize Order" && authenticate(param("login"),param("password"))) {
 			print "Finalize Order";
@@ -143,13 +153,94 @@ sub cgi_main {
 			print search_form(param("login"),param("password"),param("screen"));
 			print print_user_button(param("login"),param("password"),param("screen"));
 		}
+		elsif($action eq "Forget Password")
+		{
+			print forget_password_form();
+		}
+		elsif($action eq "Send Email")
+		{
+			print "Please Check your email to reset password.";
+			
+			#print <pre>`env`;
+			#%mail = ( smtp => 'smtp.cse.unsw.edu.au',
+			#		  To => 'hljw4@hotmail.com',
+			#		  From => 'jwli898@cse.unsw.edu.au',
+			#		  Message => 'Please click on this link'
+			 #);
+
+			#`sendmail(%mail)`;# or die $Mail::Sendmail::error;
+			$username=param("username");
+			$email='';
+			open(F,'<',"$users_dir/$username");
+			while(<F>)
+			{
+				if($_ =~ /email/)
+				{
+					$_ =~ s/.*=//;
+					$email=$_;
+				}
+			}
+			close F;
+			$msg="Please click on this link http://cgi.cse.unsw.edu.au/~jwli898/ass2/mekong.cgi?action=Reset&user=$username&email=$email";
+			`echo "$msg" |mail -s 'Mekong password recovery' -- $email`;
+		}
+		elsif($action eq "Reset")
+		{
+			$username=param("user");
+			$email=param("email");
+			print reset_password_form($username,$email);
+		}
+		elsif($action eq "Reset Password")
+		{
+			$newPass=param("newPass");
+			$username=param("user");
+			$email=param("email");
+			$email =~ tr/[A-Z]/[a-z]/;
+			open(F,'<',"$users_dir/$username");
+			$changePass=0;
+			while(<F>)
+			{
+				if(/email/)
+				{
+					s/.*=//g;
+					tr/[A-Z]/[a-z]/;
+					chomp;
+					print $_;
+					print $email;
+					if($_ eq $email)
+					{
+						$changePass=1;
+					}
+				}	
+			}
+			close F;
+			if($changePass)
+			{
+				print "hello";
+				open(F,'<',"$users_dir/$username");
+				@file=<F>;
+				close F;
+				foreach $line (@file)
+				{
+					if($line =~ /password/)
+					{
+						$line =~ s/password=.*/password=$newPass/g;
+					}	
+				}
+			}
+			open(F,'>',"$users_dir/$username");
+			print F @file;
+			close F;
+			print " loginform ";
+			print login_form();
+		}
 		else
 		{
 			print " $last_error ";
 			print " loginform ";
 			print login_form();
 		}
-	
+	#no action
 	} elsif (defined $detail && $detail =~ /action [0-9]*/) {
 		($action,$isbn)=split(' ',$detail);
 		#print param($detail);
@@ -207,11 +298,37 @@ sub login_form {
 		<tr><td align="center" colspan="2"> 
 		<input class="btn" type="submit" name="action" value="Login">
 		<input class="btn" type="submit" name="action" value="Create New Account">
+		<input class="btn" type="submit" name="action" value="Forget Password">
 		</td></tr>
 		</table>
 		
 	</form>
 	<p>
+eof
+}
+
+sub forget_password_form {
+	return <<eof;
+	<div align="center">
+	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
+		<input type="text" name="username" placeholder="Username" size=60></input><br>
+		<input class="btn" type="submit" name="action" value="Send Email">
+	</form>
+	</div>
+eof
+}
+
+sub reset_password_form {
+	my($username,$email)=@_;
+	return <<eof;
+	<div align="center">
+	<form method="post" action="/~jwli898/ass2/mekong.cgi" enctype="multipart/form-data">
+		<input type="hidden" name="user" value="$username">
+		<input type="hidden" name="email" value="$email">
+		<input type="text" name="newPass" placeholder="New Password" size=60></input><br>
+		<input class="btn" type="submit" name="action" value="Reset Password">
+	</form>
+	</div>
 eof
 }
 
