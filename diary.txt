@@ -24,3 +24,5 @@ Date		Start 		Stop 		Activity 		Comments
 02/11/13	09:35		09:42		Social Sharing	Added AddThis social sharing buttons
 02/11/13	09:42		10:32		Email			Tried emailing password, could not get server to email, fix some redirection stuff
 02/11/13	10:32		12:46		Password reset	Password reset now works
+02/11/13	12:46		13:28		Email Confirm	Email Confirmation for account creation
+

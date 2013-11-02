@@ -146,8 +146,15 @@ sub cgi_main {
 			print newAccount_form();
 		} elsif($action eq "Create Account") {
 			print "Create account";
-			createAccount(param('login'),param('password'),param('name'),param('street'),param('city'),param('state'),param('postcode'),param('email'));
-			print search_form(param("login"),param("password"),param("screen"));
+			my $email = param("email");
+			my $user = param("login");
+			my $msg = "Please Activate your new account by clicking this link http://cgi.cse.unsw.edu.au/~jwli898/ass2/mekong.cgi?action=activate&user=$user";
+			`echo "$msg" |mail -s 'Please Activate your new account' -- $email`;
+			createTempAccount(param('login'),param('password'),param('name'),param('street'),param('city'),param('state'),param('postcode'),param('email'));	
+			print login_form();
+		} elsif($action eq "activate") {
+			createAccount(param('user'));
+			print login_form();
 		} elsif($action eq "Login" && authenticate(param("login"),param("password"))) {
 			print "Login Search";
 			print search_form(param("login"),param("password"),param("screen"));
@@ -360,11 +367,11 @@ eof
 }
 
 #create 
-sub createAccount {
+sub createTempAccount {
 	my ($login,$password,$name,$street,$city,$state,$postcode,$email) = @_;
-	open (F,">users/$login");
+	open (F,">$users_dir/temp_$login");
 	
-	#`touch /users/$login`;
+	#`touch /users/temp_$login`;
 	#`print to file`
 	print F "password=$password\n";
 	print F "name=$name\n";
@@ -376,6 +383,12 @@ sub createAccount {
 	
 	close F;
 }
+
+sub createAccount {
+	my ($login)= @_;
+	`mv "$users_dir/temp_$login" "$users_dir/$login"`;
+}
+
 # simple search form
 sub search_form {
 	my($login,$password,$screen)=@_;
