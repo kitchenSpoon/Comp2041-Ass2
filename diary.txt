@@ -37,3 +37,5 @@ Date		Start 		Stop 		Activity 		Comments
 03/11/13	18:19		19:31		Drop 			Dropping now allows dropping of multiple copies
 03/11/13	19:31		19:49		NavBar 			NavBar working
 03/11/13	19:49		22:11		Bugs 			Solve Bugs
+03/11/13	22:11		22:53		Validation 		Added validation during account creation and rework the navbar
+03/11/13	22:52		23:09		Style 			Improved the UI

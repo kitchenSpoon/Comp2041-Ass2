@@ -344,7 +344,7 @@ sub navBar_login {
 		
 		<br>
 		<br>
-
+		<br>
 
 	<p>
 	<div align="center">
@@ -403,7 +403,7 @@ sub navBar_logined {
 		
 		<br>
 		<br>
-
+		<br>
 
 	<p>
 	<div align="center">
@@ -554,7 +554,7 @@ sub search_results {
 
 		
 	<div class="well">
-			<table bgcolor="white" border="1" align="center"><caption></caption>
+			<table class="table table-striped" bgcolor="white" border="1" align="center"><caption></caption>
 			$descriptions
 			</table>
 	</div>
@@ -574,10 +574,10 @@ sub get_book_descriptions_search {
 		my $authors = $book_details{$isbn}{authors} || "";
 		$authors =~ s/\n([^\n]*)$/ & $1/g;
 		$authors =~ s/\n/, /g;
-		$descriptions .= '<form method="post" action="'.$ENV{"SCRIPT_URI"}.'" enctype="multipart/form-data">';
+		$descriptions .= '<tr><form method="post" action="'.$ENV{"SCRIPT_URI"}.'" enctype="multipart/form-data">';
 		$descriptions .= hidden_inputs($login,$password,$screen);
 		$descriptions .= '<input type="hidden" name="search_terms" value="'.$search_terms.'">';
-		$descriptions .= sprintf '<tr><td><img src="%s"></td> <td><i>%s</i><br>%s<br></td> <td align="right"><tt>%7s</tt></td><td> ',$book_details{$isbn}{smallimageurl},$title,$authors,$book_details{$isbn}{price};
+		$descriptions .= sprintf '<td><img src="%s"></td> <td><i>%s</i><br>%s<br></td> <td align="right"><tt>%7s</tt></td><td> ',$book_details{$isbn}{smallimageurl},$title,$authors,$book_details{$isbn}{price};
 		$descriptions .= '<input type="hidden" name="isbn '.$isbn.'" value="1"><br>';
 		$descriptions .= '<input type="text" name="qty" value="1">';
 		$descriptions .= '<input class="btn" type="submit" name="action '.$isbn.'" value="Add"><br>';
@@ -711,7 +711,7 @@ eof
 	my ($descriptions,$total) = get_book_descriptions_basket($login,$password,$screen,@isbns);
 	return <<eof;
 	<div class="well">
-		<table bgcolor="white" border="1" align="center"><caption></caption>
+		<table class="table table-striped" bgcolor="white" border="1" align="center"><caption></caption>
 		$descriptions
 		<tr><td><b>Total</b></td> <td></td> <td align="right">$total</td></tr>
 		</table>
@@ -726,7 +726,7 @@ sub basket_order {
 	if(@isbns==0)
 	{
 		return <<eof;
-		<table bgcolor="white" align="center">
+		<table class="table table-striped"  bgcolor="white" align="center">
 		<tr><td>You have nothing!</td></tr>
 		</table>
 		<br>
@@ -737,7 +737,7 @@ eof
 	return <<eof;
 	<div class="well">
 	<!--<pre>-->
-		<table bgcolor="white" border="1" align="center"><caption></caption>
+		<table class="table table-striped" bgcolor="white" border="1" align="center"><caption></caption>
 		$descriptions
 		<tr><td><b>Total</b></td> <td></td> <td align="right">$total</td></tr>
 		</table>
