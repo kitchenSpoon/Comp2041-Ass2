@@ -287,7 +287,7 @@ sub cgi_main {
 		elsif(param($detail) eq "Drop")
 		{
 			print "deleteBasket";
-			delete_basket($login,$isbn);
+			delete_basket($login,$isbn,param("qty"));
 			print basket_page(param("login"),param("password"),param("screen"),read_basket_qty($login));
 			print basket_user_button(param("login"),param("password"),param("screen"));
 		}
@@ -1332,15 +1332,28 @@ sub read_basket_qty {
 # only first occurance is deleted
 
 sub delete_basket {
-	my ($login, $delete_isbn) = @_;
-	my @isbns = read_basket($login);
+	my ($login, $delete_isbn,$qty) = @_;
+	my @inputs = read_basket_qty($login);
 	open F, ">$baskets_dir/$login" or die "Can not open $baskets_dir/$login: $!";
-	foreach $isbn (@isbns) {
-		if ($isbn eq $delete_isbn) {
+	foreach $input (@inputs) {
+		my($currIsbn,$currQty)=split ' ',$input;
+		if ($currIsbn eq $delete_isbn) {
+			
 			$delete_isbn = "";
-			next;
+			if($qty >= $currQty)
+			{
+				next;
+			}
+			else
+			{
+				my $newQty=$currQty-$qty;
+				print F "$currIsbn $newQty\n";
+			}
 		}
-		print F "$isbn\n";
+		else
+		{
+			print F "$currIsbn $currQty\n";
+		}
 	}
 	close(F);
 	unlink "$baskets_dir/$login" if ! -s "$baskets_dir/$login";
@@ -1671,7 +1684,7 @@ sub drop_command {
 		print "Isbn $isbn not in shopping basket.\n";
 		return;
 	}
-	delete_basket($login, $isbn);
+	delete_basket($login, $isbn,"");
 }
 
 sub checkout_command {
