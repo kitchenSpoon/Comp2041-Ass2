@@ -32,3 +32,5 @@ Date		Start 		Stop 		Activity 		Comments
 03/11/13	12:16		12:18		Bug				Logout now redirects properly
 03/11/13	12:18		12:28		Bug				Finalized order now working properly
 03/11/13	14:33		17:27		Add copies 		Add multiple copies of books and fixed bunch of other bugs
+03/11/13	17:27		17:34		Total 			Total now reflects price times qty, cleaned up order_page
+03/11/13	17:34		18:19		NavBar 			Added NavBar for front page	

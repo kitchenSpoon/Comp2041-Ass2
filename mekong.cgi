@@ -54,20 +54,24 @@ sub cgi_main {
 		print param("login")," ";
 		print param("password")," ";
 		if($action eq "Check out" && authenticate(param("login"),param("password"))) {
+			print navBar_logined($login);
 			print "Checkout";
 			if (!read_basket($login))
 			{
+				
 				print search_form(param("login"),param("password"),param("screen"));
 				print print_user_button(param("login"),param("password"),param("screen"));
 			}
 			else
 			{
+				
 				print basket_page(param("login"),param("password"),param("screen"),read_basket_qty($login));
 				print checkout_page($login);
 			}
 			
 			
 		} elsif($action eq "Finalize Order" && authenticate(param("login"),param("password"))) {
+			print navBar_logined($login);
 			print "Finalize Order";
 			
 			my ($credit_card_number, $expiry_date);
@@ -101,6 +105,7 @@ sub cgi_main {
 			
 			
 		} elsif($action eq "Basket" && authenticate(param("login"),param("password"))) {
+			print navBar_logined($login);
 			print "Basket";
 			print search_form(param("login"),param("password"),param("screen"));
 			print basket_page(param("login"),param("password"),param("screen"),read_basket_qty($login));
@@ -108,6 +113,7 @@ sub cgi_main {
 			#Need print total cost!!
 		
 		} elsif($action eq "View orders" && authenticate(param("login"),param("password"))) {
+			print navBar_logined($login);
 			print "View orders";
 			
 			order_page(param("login"),param("password"),param("screen"));
@@ -161,6 +167,7 @@ sub cgi_main {
 			createAccount(param('user'));
 			print login_form();
 		} elsif($action eq "Login" && authenticate(param("login"),param("password"))) {
+			print navBar_logined($login);
 			print "Login Search";
 			print search_form(param("login"),param("password"),param("screen"));
 			print print_user_button(param("login"),param("password"),param("screen"));
@@ -258,6 +265,7 @@ sub cgi_main {
 		
 	#no action
 	} elsif (defined $detail && $detail =~ /action [0-9]*/) {
+		print navBar_logined($login);
 		($action,$isbn)=split(' ',$detail);
 		#print param($detail);
 		if(param($detail) eq "Add" or param($detail) =~ /[0-9]+/){
@@ -314,6 +322,97 @@ sub cgi_main {
 	print page_trailer();
 }
 
+
+#navbar
+sub navBar_login {
+	return<<eof;
+	<div class="navbar navbar-inverse navbar-fixed-top">
+		  <div class="navbar-inner">
+			<div class="container">
+			  <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			  </button>
+			  <a class="brand" href="./index.html">Mekong</a>
+			  <div class="nav-collapse collapse">
+				<ul class="nav">
+				  <li class="active">
+					<a href="?action=Login">Login</a>
+				  </li>
+				  <li class="">
+					<a href="?action=Create New Account">Create New Account</a>
+				  </li>
+				  <li class="">
+					<a href="?action=Forget Password">Forget Password</a>
+				  </li>
+				</ul>
+			  </div>
+			</div>
+		  </div>
+		</div>
+		
+		
+		<br>
+		<br>
+
+
+	<p>
+	<div align="center">
+		<img src="grumpy-cat.jpg" width="200" height="100">
+		<h1>Hi $login </h1>
+	</div>
+eof
+}
+
+sub navBar_logined {
+	my ($login)=@_;
+	return<<eof;
+	<div class="navbar navbar-inverse navbar-fixed-top">
+		  <div class="navbar-inner">
+			<div class="container">
+			  <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			  </button>
+			  <a class="brand" href="./index.html">Mekong</a>
+			  <div class="nav-collapse collapse">
+				<ul class="nav">
+				  <li class="active">
+					<a href="?action=Login">Search</a>
+				  </li>
+				  <li class="">
+					<a href="?action=Basket">Basket</a>
+				  </li>
+				  <li class="">
+					<a href="?action=Check out">Check out</a>
+				  </li>
+				  <li class="">
+					<a href="?action=View orders">View Orders</a>
+				  </li>
+				  <li class="">
+					<a href="?action=Logout">Logout</a>
+				  </li>
+				</ul>
+			  </div>
+			</div>
+		  </div>
+		</div>
+		
+		
+		<br>
+		<br>
+
+
+	<p>
+	<div align="center">
+		<img src="grumpy-cat.jpg" width="200" height="100">
+		<h1>Hi $login </h1>
+	</div>
+eof
+}
+
 # simple login form without authentication	
 sub login_form {
 	#create reviews file
@@ -322,7 +421,8 @@ sub login_form {
 		open(F,'>',"$base_dir/reviews");
 		close F;
 	}
-
+	print navBar_login();
+	
 	return <<eof;
 	<p>
 	<form method="post" action="$ENV{"SCRIPT_URI"}" enctype="multipart/form-data">
@@ -631,8 +731,10 @@ sub basket_order {
 		<br>
 eof
 	}
+	
 	my ($descriptions,$total) = get_book_descriptions_order($login,$password,$screen,@isbns);
 	return <<eof;
+	<div class="well">
 	<!--<pre>-->
 		<table bgcolor="white" border="1" align="center"><caption></caption>
 		$descriptions
@@ -640,6 +742,7 @@ eof
 		</table>
 	<!--</pre>-->
 	<p>
+	</div>
 eof
 }
 
@@ -662,7 +765,7 @@ sub get_book_descriptions_basket {
 		$authors =~ s/\n/, /g;
 		$descriptions.='<form method="post" action="'.$ENV{"SCRIPT_URI"}.'" enctype="multipart/form-data">';
 		$descriptions.=hidden_inputs($login,$password,$screen);
-		$descriptions .= sprintf '<tr><td><img src="%s"></td> <td><i>%s</i><br>%s<br></td> <td align="right"><tt>%7s</tt></td><td>Qty: %s</td> <td>',$book_details{$isbn}{smallimageurl},$title,$authors,$book_details{$isbn}{price},$qty;
+		$descriptions .= sprintf '<tr><td><img src="%s"></td> <td><i>%s</i><br>%s<br></td> <td align="right"><tt>%7s</tt></td><td><span class="badge">Qty: %s</span></td> <td>',$book_details{$isbn}{smallimageurl},$title,$authors,$book_details{$isbn}{price},$qty;
 		$descriptions .= '<input type="hidden" name="isbn '.$isbn.'" value="1"><br>';
 		$descriptions .= '<input type="text" name="qty" value="1">';
 		$descriptions .= '<input class="btn" type="submit" name="action '.$isbn.'" value="Drop"><br>';
@@ -696,7 +799,7 @@ sub get_book_descriptions_order {
 		$authors =~ s/\n/, /g;
 		$descriptions.='<form method="post" action="'.$ENV{"SCRIPT_URI"}.'" enctype="multipart/form-data">';
 		$descriptions.=hidden_inputs($login,$password,$screen);
-		$descriptions .= sprintf '<tr><td><img src="%s"></td> <td><i>%s</i><br>%s<br></td> <td align="right"><tt>%7s</tt></td><td>Qty: %s</td>',$book_details{$isbn}{smallimageurl},$title,$authors,$book_details{$isbn}{price},$qty;
+		$descriptions .= sprintf '<tr><td><img src="%s"></td> <td><i>%s</i><br>%s<br></td> <td align="right"><tt>%7s</tt></td><td><span class="badge">Qty: %s</span></td>',$book_details{$isbn}{smallimageurl},$title,$authors,$book_details{$isbn}{price},$qty;
 		$descriptions .= '</tr></form>';
 		my $price=$book_details{$isbn}{price};
 		$price =~ s/\$//g;
@@ -893,17 +996,17 @@ Content-Type: text/html
   });
 </script>
 <!-- AddThis Smart Layers END -->
+
+
+
 </head>
 <body>
 
 
-<p>
-<div align="center">
-	<img src="grumpy-cat.jpg" width="200" height="100">
-	<h1>Hi $login </h1>
-</div>
+
 
 <div class="container">
+
 eof
 }
 
@@ -1248,8 +1351,21 @@ sub delete_basket {
 
 sub add_basket {
 	my ($login, $isbn,$qty) = @_;
+	open F,'<',"$baskets_dir/$login" or die "Can not open $baskets_dir/$login::$! \n";
+	my @temp=<F>;
+	close F;
+	foreach (@temp)
+	{
+		my($currIsbn,$currQty)=split ' ',$_;
+		if($currIsbn eq $isbn)
+		{
+			return;
+		}
+	}
 	open F, ">>$baskets_dir/$login" or die "Can not open $baskets_dir/$login::$! \n";
+	
 	print F "$isbn $qty\n";
+	
 	close(F);
 }
 
