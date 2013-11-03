@@ -268,7 +268,7 @@ sub cgi_main {
 			}
 			else
 			{
-				print search_results($search_terms);
+				print search_results(param("login"),param("password"),param("screen"),$search_terms);
 				print print_user_button(param("login"),param("password"),param("screen"));
 			}
 			
@@ -298,7 +298,7 @@ sub cgi_main {
 	} elsif (defined $search_terms) {
 			print "search terms";
 			param(-name=>'screen',-value=>'searchRes');
-			print search_results($search_terms);
+			print search_results(param("login"),param("password"),param("screen"),$search_terms);
 			print print_user_button(param("login"),param("password"),param("screen"));
 		#}
 	} else {
@@ -435,10 +435,13 @@ eof
 
 #search
 sub search_results {
-	my ($search_terms,) = @_;
+	my ($login,$password,$screen,$search_terms) = @_;
+	my $ret="";
 	my @matching_isbns = search_books($search_terms);
 	my $descriptions = get_book_descriptions_search(@matching_isbns);
-	return <<eof;
+	$ret.='<form method="post" action="'.$ENV{"SCRIPT_URI"}.'" enctype="multipart/form-data">';
+	$ret.=hidden_inputs($login,$password,$screen);
+	$ret.=<<eof;
 	<!--<p>$search_terms-->
 		<table align="center"><tr><td align="center">
 			search: <input type="text" name="search_terms" value="$search_terms" size=60></input>
@@ -451,7 +454,9 @@ sub search_results {
 	<!--</pre>-->
 	<p>
 	<!--NOT ME-->
+	</form>
 eof
+	return $ret;
 }
 sub get_book_descriptions_search {
 	my @isbns = @_;
