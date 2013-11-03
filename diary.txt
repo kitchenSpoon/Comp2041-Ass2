@@ -36,3 +36,4 @@ Date		Start 		Stop 		Activity 		Comments
 03/11/13	17:34		18:19		NavBar 			Added NavBar for front page	
 03/11/13	18:19		19:31		Drop 			Dropping now allows dropping of multiple copies
 03/11/13	19:31		19:49		NavBar 			NavBar working
+03/11/13	19:49		22:11		Bugs 			Solve Bugs

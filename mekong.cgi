@@ -96,11 +96,6 @@ sub cgi_main {
 				print "Invalid Credit Card";
 			}
 			
-		
-			
-			
-			
-			
 			
 		} elsif($action eq "Basket" && authenticate(param("login"),param("password"))) {
 			print navBar_logined(param("login"),param("password"),param("screen"));
@@ -143,21 +138,28 @@ sub cgi_main {
 			else
 			{
 				print "<!--Create account-->";
-				my $email = param("email");
-				my $user = param("login");
-				my $msg = "Please Activate your new account by clicking this link ".$ENV{"SCRIPT_URI"}."?action=activate&user=$user";
-				`echo "$msg" |mail -s 'Please Activate your new account' -- $email`;
-				createTempAccount(param('login'),param('password'),param('name'),param('street'),param('city'),param('state'),param('postcode'),param('email'));	
-				print login_form();
+				if(legal_login("login") && legal_password(param("password")))
+				{
+					my $email = param("email");
+					my $user = param("login");
+					my $msg = "Please Activate your new account by clicking this link ".$ENV{"SCRIPT_URI"}."?action=activate&user=$user";
+					`echo "$msg" |mail -s 'Please Activate your new account' -- $email`;
+					createTempAccount(param('login'),param('password'),param('name'),param('street'),param('city'),param('state'),param('postcode'),param('email'));	
+					print login_form();
+				}
+				print navBar_login();
+				print '<div align="center" style="color:red"><em>Illegal Inputs</em></div>';
+				print newAccount_form();
 			}
 		} elsif($action eq "activate") {
 			createAccount(param('user'));
 			print login_form();
-		} elsif($action eq "Login" && authenticate(param("login"),param("password"))) {
+		} elsif(($action eq "Login" or $action eq "Search") && authenticate(param("login"),param("password"))) {
 			print navBar_logined(param("login"),param("password"),param("screen"));
 			print "<!--Login Search-->";
 			print search_form(param("login"),param("password"),param("screen"));
 			print print_user_button(param("login"),param("password"),param("screen"));
+		
 		}
 		elsif($action eq "Forget Password")
 		{
@@ -366,21 +368,32 @@ sub navBar_logined {
 			  <a class="brand" href="">Mekong</a>
 			  <div class="nav-collapse collapse">
 				<ul class="nav">
-				  <li class="">
-					<a href="?action=Login&login=$login&password=$password&screen=$screen">Search</a>
-				  </li>
-				  <li class="">
-					<a href="?action=Basket&login=$login&password=$password&screen=$screen">Basket</a>
-				  </li>
-				  <li class="">
-					<a href="?action=Check out&login=$login&password=$password&screen=$screen">Check out</a>
-				  </li>
-				  <li class="">
-					<a href="?action=View orders&login=$login&password=$password&screen=$screen">View Orders</a>
-				  </li>
-				  <li class="">
-					<a href="?action=Logout&login=$login&password=$password&screen=$screen">Logout</a>
-				  </li>
+				  <form method="post" action="$ENV{"SCRIPT_URI"}" enctype="multipart/form-data">
+					<input type="hidden" name="screen" value="$screen">
+					<input type="hidden" name="login" value="$login">
+					<input type="hidden" name="password" value="$password">
+		
+				  <!--<li class="">-->
+					<input class="btn" type="submit" name="action" value="Search">
+					<!--<a href="?action=Login&login=$login&password=$password&screen=$screen">Search</a>-->
+				  <!--</li>-->
+				  <!--<li class="">-->
+					<input class="btn" type="submit" name="action" value="Basket">
+					<!--<a href="?action=Basket&login=$login&password=$password&screen=$screen">Basket</a>-->
+				  <!--</li>-->
+				 <!--<li class="">-->
+					<input class="btn" type="submit" name="action" value="Check out">
+					<!--<a href="?action=Check out&login=$login&password=$password&screen=$screen">Check out</a>-->
+				  <!--</li>-->
+				  <!--<li class="">-->
+					<input class="btn" type="submit" name="action" value="View orders">
+					<!--<a href="?action=View orders&login=$login&password=$password&screen=$screen">View Orders</a>-->
+				  <!--</li>-->
+				  <!--<li class="">-->
+					<input class="btn" type="submit" name="action" value="Logout">
+					<!--<a href="?action=Logout&login=$login&password=$password&screen=$screen">Logout</a>-->
+				  <!--</li>-->
+				  </form>
 				</ul>
 			  </div>
 			</div>
@@ -611,9 +624,11 @@ eof
 
 sub review_page {
 	my ($isbn) = @_;
+	
 	open(F,"+<","$base_dir/reviews");
 	print '<div align="center">';
-	print '<b>Reviews</b>';
+	print '<br>';
+	print '<h1>Reviews</h1>';
 	print '</div><br>';
 	my $foundBook=0;
 	while(<F>)
@@ -633,7 +648,7 @@ sub review_page {
 			}
 			else
 			{
-				print '<div align="center">';
+				print '<div class="well" align="center">';
 				print $_;
 				print '</div>';
 			}
