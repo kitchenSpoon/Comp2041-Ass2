@@ -28,5 +28,6 @@ Date		Start 		Stop 		Activity 		Comments
 02/11/13	15:34		15:59		Links			Remove hardcoded redirection links
 03/11/13	08:34		09:12		Bug				Fix Detail Bug
 03/11/13	09:12		11:47		Review			Reviews done, its just ugly, need to change the layout
-
+03/11/13	12:00		12:16		Bug				Fix searching form bug
+03/11/13	12:16		12:18		Bug				Logout now redirects properly
 

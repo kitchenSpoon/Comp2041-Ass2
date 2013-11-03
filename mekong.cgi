@@ -140,7 +140,9 @@ sub cgi_main {
 			#read_basket($login)
 		
 		} elsif($action eq "Logout" && authenticate(param("login"),param("password"))) {
+			#logout
 			print "Logout";
+			print login_form();
 		
 		} elsif($action eq "Create New Account") {
 			print "Create new account";
