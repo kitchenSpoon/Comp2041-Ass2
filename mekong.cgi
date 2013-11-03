@@ -129,13 +129,27 @@ sub cgi_main {
 			print navBar_login();
 			print newAccount_form();
 		} elsif($action eq "Create Account") {
-			print "<!--Create account-->";
-			my $email = param("email");
-			my $user = param("login");
-			my $msg = "Please Activate your new account by clicking this link ".$ENV{"SCRIPT_URI"}."?action=activate&user=$user";
-			`echo "$msg" |mail -s 'Please Activate your new account' -- $email`;
-			createTempAccount(param('login'),param('password'),param('name'),param('street'),param('city'),param('state'),param('postcode'),param('email'));	
-			print login_form();
+			
+			if(open (F,"<$users_dir/$login"))
+			{
+				print "User already exist";
+				close F;
+			}
+			elsif(open (F,"<$users_dir/temp_$login"))
+			{
+				print "User already exist,please check your email for verification email";
+				close F;
+			}
+			else
+			{
+				print "<!--Create account-->";
+				my $email = param("email");
+				my $user = param("login");
+				my $msg = "Please Activate your new account by clicking this link ".$ENV{"SCRIPT_URI"}."?action=activate&user=$user";
+				`echo "$msg" |mail -s 'Please Activate your new account' -- $email`;
+				createTempAccount(param('login'),param('password'),param('name'),param('street'),param('city'),param('state'),param('postcode'),param('email'));	
+				print login_form();
+			}
 		} elsif($action eq "activate") {
 			createAccount(param('user'));
 			print login_form();
@@ -152,12 +166,10 @@ sub cgi_main {
 		}
 		elsif($action eq "Send Email")
 		{
-			print "Please Check your email to reset password.";
-			
-		
 			$username=param("username");
 			$email='';
-			open(F,'<',"$users_dir/$username");
+			if(open(F,'<',"$users_dir/$username"))
+			{ 
 			while(<F>)
 			{
 				if($_ =~ /email/)
@@ -169,6 +181,12 @@ sub cgi_main {
 			close F;
 			$msg="Please click on this link ".$ENV{"SCRIPT_URI"}."?action=Reset&user=$username&email=$email";
 			`echo "$msg" |mail -s 'Mekong password recovery' -- $email`;
+			print "Please Check your email to reset password.";
+			}
+			else
+			{
+				print "No such user";
+			}
 		}
 		elsif($action eq "Reset")
 		{
@@ -243,6 +261,7 @@ sub cgi_main {
 			{
 				print detail_page($isbn);
 				print details_user_button(param("login"),param("password"),param("screen"),$detail);
+				print review_page($isbn);
 			}
 			else
 			{
@@ -466,6 +485,7 @@ eof
 #create 
 sub createTempAccount {
 	my ($login,$password,$name,$street,$city,$state,$postcode,$email) = @_;
+	
 	open (F,">$users_dir/temp_$login");
 	
 	#`touch /users/temp_$login`;
