@@ -35,3 +35,4 @@ Date		Start 		Stop 		Activity 		Comments
 03/11/13	17:27		17:34		Total 			Total now reflects price times qty, cleaned up order_page
 03/11/13	17:34		18:19		NavBar 			Added NavBar for front page	
 03/11/13	18:19		19:31		Drop 			Dropping now allows dropping of multiple copies
+03/11/13	19:31		19:49		NavBar 			NavBar working

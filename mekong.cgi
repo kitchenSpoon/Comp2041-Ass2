@@ -54,7 +54,7 @@ sub cgi_main {
 		print param("login")," ";
 		print param("password")," ";
 		if($action eq "Check out" && authenticate(param("login"),param("password"))) {
-			print navBar_logined($login);
+			print navBar_logined(param("login"),param("password"),param("screen"));
 			print "Checkout";
 			if (!read_basket($login))
 			{
@@ -71,7 +71,7 @@ sub cgi_main {
 			
 			
 		} elsif($action eq "Finalize Order" && authenticate(param("login"),param("password"))) {
-			print navBar_logined($login);
+			print navBar_logined(param("login"),param("password"),param("screen"));
 			print "Finalize Order";
 			
 			my ($credit_card_number, $expiry_date);
@@ -105,7 +105,7 @@ sub cgi_main {
 			
 			
 		} elsif($action eq "Basket" && authenticate(param("login"),param("password"))) {
-			print navBar_logined($login);
+			print navBar_logined(param("login"),param("password"),param("screen"));
 			print "Basket";
 			print search_form(param("login"),param("password"),param("screen"));
 			print basket_page(param("login"),param("password"),param("screen"),read_basket_qty($login));
@@ -113,7 +113,7 @@ sub cgi_main {
 			#Need print total cost!!
 		
 		} elsif($action eq "View orders" && authenticate(param("login"),param("password"))) {
-			print navBar_logined($login);
+			print navBar_logined(param("login"),param("password"),param("screen"));
 			print "View orders";
 			
 			order_page(param("login"),param("password"),param("screen"));
@@ -167,7 +167,7 @@ sub cgi_main {
 			createAccount(param('user'));
 			print login_form();
 		} elsif($action eq "Login" && authenticate(param("login"),param("password"))) {
-			print navBar_logined($login);
+			print navBar_logined(param("login"),param("password"),param("screen"));
 			print "Login Search";
 			print search_form(param("login"),param("password"),param("screen"));
 			print print_user_button(param("login"),param("password"),param("screen"));
@@ -265,7 +265,7 @@ sub cgi_main {
 		
 	#no action
 	} elsif (defined $detail && $detail =~ /action [0-9]*/) {
-		print navBar_logined($login);
+		print navBar_logined(param("login"),param("password"),param("screen"));
 		($action,$isbn)=split(' ',$detail);
 		#print param($detail);
 		if(param($detail) eq "Add" or param($detail) =~ /[0-9]+/){
@@ -310,6 +310,7 @@ sub cgi_main {
 	} elsif (defined $search_terms) {
 			print "search terms";
 			param(-name=>'screen',-value=>'searchRes');
+			print navBar_logined(param("login"),param("password"),param("screen"));
 			print search_results(param("login"),param("password"),param("screen"),$search_terms);
 			print print_user_button(param("login"),param("password"),param("screen"));
 		#}
@@ -366,7 +367,7 @@ eof
 }
 
 sub navBar_logined {
-	my ($login)=@_;
+	my ($login,$password,$screen)=@_;
 	return<<eof;
 	<div class="navbar navbar-inverse navbar-fixed-top">
 		  <div class="navbar-inner">
@@ -380,19 +381,19 @@ sub navBar_logined {
 			  <div class="nav-collapse collapse">
 				<ul class="nav">
 				  <li class="active">
-					<a href="?action=Login">Search</a>
+					<a href="?action=Login&login=$login&password=$password&screen=$screen">Search</a>
 				  </li>
 				  <li class="">
-					<a href="?action=Basket">Basket</a>
+					<a href="?action=Basket&login=$login&password=$password&screen=$screen">Basket</a>
 				  </li>
 				  <li class="">
-					<a href="?action=Check out">Check out</a>
+					<a href="?action=Check out&login=$login&password=$password&screen=$screen">Check out</a>
 				  </li>
 				  <li class="">
-					<a href="?action=View orders">View Orders</a>
+					<a href="?action=View orders&login=$login&password=$password&screen=$screen">View Orders</a>
 				  </li>
 				  <li class="">
-					<a href="?action=Logout">Logout</a>
+					<a href="?action=Logout&login=$login&password=$password&screen=$screen">Logout</a>
 				  </li>
 				</ul>
 			  </div>
@@ -546,21 +547,19 @@ sub search_results {
 	$ret.='<form method="post" action="'.$ENV{"SCRIPT_URI"}.'" enctype="multipart/form-data">';
 	$ret.=hidden_inputs($login,$password,$screen);
 	$ret.=<<eof;
-	<!--<p>$search_terms-->
 		<table align="center"><tr><td align="center">
 			search: <input type="text" name="search_terms" value="$search_terms" size=60></input>
 		</td></tr></table>
 		</form>
-	<!--<p>@matching_isbns-->
-	<!--<pre>-->
-	test
+
+		
+	<div class="well">
 			<table bgcolor="white" border="1" align="center"><caption></caption>
 			$descriptions
 			</table>
-	test2
-	<!--</pre>-->
+	</div>
 	<p>
-	<!--NOT ME-->
+
 	
 eof
 	return $ret;
@@ -709,12 +708,12 @@ eof
 	}
 	my ($descriptions,$total) = get_book_descriptions_basket($login,$password,$screen,@isbns);
 	return <<eof;
-	<!--<pre>-->
+	<div class="well">
 		<table bgcolor="white" border="1" align="center"><caption></caption>
 		$descriptions
 		<tr><td><b>Total</b></td> <td></td> <td align="right">$total</td></tr>
 		</table>
-	<!--</pre>-->
+	</div>
 	<p>
 eof
 }
