@@ -328,7 +328,7 @@ sub navBar_login {
 	<p>
 	<div align="center">
 		<img src="grumpy-cat.jpg" width="200" height="100">
-		<h1>Hi $login </h1>
+		<h1>Hi Stranger </h1>
 	</div>
 eof
 }
@@ -877,6 +877,7 @@ eof
 	<input class="btn" type="submit" name="$detail" value="Post Review">
 	<br>
 	<br>
+	<input type="hidden" name="qty" value="1">
 	<input class="btn" type="submit" name="$detail" value="Add">
 	<input class="btn" type="submit" name="action" value="Basket">
 	<input class="btn" type="submit" name="action" value="Check out">
