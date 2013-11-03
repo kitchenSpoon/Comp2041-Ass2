@@ -26,4 +26,7 @@ Date		Start 		Stop 		Activity 		Comments
 02/11/13	10:32		12:46		Password reset	Password reset now works
 02/11/13	12:46		13:28		Email Confirm	Email Confirmation for account creation
 02/11/13	15:34		15:59		Links			Remove hardcoded redirection links
+03/11/13	08:34		09:12		Bug				Fix Detail Bug
+03/11/13	09:12		11:47		Review			Reviews done, its just ugly, need to change the layout
+
 

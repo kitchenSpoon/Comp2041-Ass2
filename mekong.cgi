@@ -60,7 +60,7 @@ sub cgi_main {
 			}
 			else
 			{
-				print basket_page(read_basket($login));
+				print basket_page(param("login"),param("password"),param("screen"),read_basket($login));
 				print checkout_page($login);
 			}
 			
@@ -101,14 +101,14 @@ sub cgi_main {
 		} elsif($action eq "Basket" && authenticate(param("login"),param("password"))) {
 			print "Basket";
 			print search_form(param("login"),param("password"),param("screen"));
-			print basket_page(read_basket($login));
+			print basket_page(param("login"),param("password"),param("screen"),read_basket($login));
 			print basket_user_button(param("login"),param("password"),param("screen"));
 			#Need print total cost!!
 		
 		} elsif($action eq "View orders" && authenticate(param("login"),param("password"))) {
 			print "View orders";
 			
-			order_page($login);
+			order_page(param("login"),param("password"),param("screen"));
 			print print_orders_button(param("login"),param("password"),param("screen"));
 			
 			#open(F,"<","$orders_dir/$login");
@@ -242,6 +242,7 @@ sub cgi_main {
 			print " loginform ";
 			print login_form();
 		}
+		
 		else
 		{
 			print " $last_error ";
@@ -249,6 +250,8 @@ sub cgi_main {
 			print " loginform ";
 			print login_form();
 		}
+		
+		
 	#no action
 	} elsif (defined $detail && $detail =~ /action [0-9]*/) {
 		($action,$isbn)=split(' ',$detail);
@@ -261,6 +264,7 @@ sub cgi_main {
 			{
 				print detail_page($isbn);
 				print details_user_button(param("login"),param("password"),param("screen"),$detail);
+				review_page($isbn);
 			}
 			else
 			{
@@ -273,13 +277,24 @@ sub cgi_main {
 		{
 			print "deleteBasket";
 			delete_basket($login,$isbn);
-			print basket_page(read_basket($login));
+			print basket_page(param("login"),param("password"),param("screen"),read_basket($login));
+		}
+		elsif(param($detail) eq "Post Review")
+		{	
+			#post review
+			print "Post Review";
+			write_review(param("login"),param("Review"),$isbn);
+			print detail_page($isbn);
+			print details_user_button(param("login"),param("password"),param("screen"),$detail);
+			review_page($isbn);
 		}
 		else{ # details
 			print "Detail";
 			print detail_page($isbn);
 			print details_user_button(param("login"),param("password"),param("screen"),$detail);
+			print review_page($isbn);
 		}
+	
 	} elsif (defined $search_terms) {
 			print "search terms";
 			param(-name=>'screen',-value=>'searchRes');
@@ -297,6 +312,13 @@ sub cgi_main {
 
 # simple login form without authentication	
 sub login_form {
+	#create reviews file
+	if(!(-e "$base_dir/reviews")) 
+	{
+		open(F,'>',"$base_dir/reviews");
+		close F;
+	}
+
 	return <<eof;
 	<p>
 	<form method="post" action="$ENV{"SCRIPT_URI"}" enctype="multipart/form-data">
@@ -483,9 +505,81 @@ eof
 	return $ret;
 }
 
+sub review_page {
+	my ($isbn) = @_;
+	open(F,"+<","$base_dir/reviews");
+	print '<div align="center">';
+	print '<b>Reviews</b>';
+	print '</div><br>';
+	my $foundBook=0;
+	while(<F>)
+	{	
+		if($foundBook==0)
+		{
+			if(/$isbn/)
+			{
+				$foundBook=1;
+			}
+		}
+		else
+		{
+			if(/$isbn/)
+			{
+				last;
+			}
+			else
+			{
+				print '<div align="center">';
+				print $_;
+				print '</div>';
+			}
+		}
+	}
+	close F;
+}
+
+sub write_review {
+	my ($login,$review,$isbn) = @_;
+	print $isbn;
+	open(F,"<","$base_dir/reviews");
+	open(FOUT,">","$base_dir/reviews.temp");
+	$found=0;
+	while(<F>)
+	{
+		if(/.*$isbn:$/)
+		{
+			print FOUT $_;
+			print FOUT "$review by $login\n";
+			$found=1;
+		}
+		elsif(/.*$isbn:end$/)
+		{
+			print FOUT $_;
+			last;
+		}
+		else
+		{
+			print FOUT $_;
+		}
+	}
+	close FOUT;
+	close F;
+	
+	if(!$found)
+	{
+		open(FOUT,">>","$base_dir/reviews.temp");
+		print FOUT "$isbn:\n";
+		print FOUT "$review by $login\n";
+		print FOUT "$isbn:end\n";
+		close FOUT;
+	}
+	`rm $base_dir/reviews`;
+	`mv $base_dir/reviews.temp $base_dir/reviews`;
+}
+
 #basket
 sub basket_page {
-	my (@isbns) = @_;
+	my($login,$password,$screen,@isbns)=@_;
 	if(@isbns==0)
 	{
 		return <<eof;
@@ -495,7 +589,7 @@ sub basket_page {
 		<br>
 eof
 	}
-	my ($descriptions,$total) = get_book_descriptions_basket(@isbns);
+	my ($descriptions,$total) = get_book_descriptions_basket($login,$password,$screen,@isbns);
 	return <<eof;
 	<!--<pre>-->
 		<table bgcolor="white" border="1" align="center"><caption></caption>
@@ -509,10 +603,12 @@ eof
 
 
 sub get_book_descriptions_basket {
-	my @isbns = @_;
+	my($login,$password,$screen,@isbns)=@_;
 	my $descriptions = "";
 	our %book_details;
 	my $sum=0;
+	$descriptions.='<form method="post" action="'.$ENV{"SCRIPT_URI"}.'" enctype="multipart/form-data">';
+	$descriptions.=hidden_inputs($login,$password,$screen);
 	foreach $isbn (@isbns) {
 		if (!$book_details{$isbn}) # shouldn't happen
 		{
@@ -530,7 +626,7 @@ sub get_book_descriptions_basket {
 		$price =~ s/\$//g;
 		$sum+=$price;
 	}
-	
+	$descriptions.='</form>';
 	
 	return ($descriptions,'$'.$sum);
 }
@@ -589,7 +685,7 @@ eof
 
 #View orders
 sub order_page {
-	my ($login) = @_;
+	my($login,$password,$screen)=@_;
 	print "\n";
 	my $ret="";
 	foreach $order (login_to_orders($login)) {
@@ -602,7 +698,7 @@ sub order_page {
 		<tr><td align="center">Credit Card Number: $credit_card_number (Expiry $expiry_date)</td></tr>
 		</table>
 eof
-		$ret.=basket_page(@isbns);
+		$ret.=basket_page(param("login"),param("password"),param("screen"),@isbns);
 		print $ret;
 	}
 }
@@ -645,17 +741,27 @@ eof
 sub details_user_button {
 	my($login,$password,$screen,$detail)=@_;
 	my $ret.=<<eof;
+
+
 	<form method="post" action="$ENV{"SCRIPT_URI"}" enctype="multipart/form-data">
+
 	<table align="center"><caption><font color=red></font></caption> <tr><td align="center" colspan="4">
 eof
 	$ret.=hidden_inputs($login,$password,"Details");
 	$ret.=<<eof;
+	<br>
+	<textarea class="field" name="Review" value="" placeholder="Write your review here!"></textarea>
+	<input class="btn" type="submit" name="$detail" value="Post Review">
+	<br>
+	<br>
 	<input class="btn" type="submit" name="$detail" value="Add">
 	<input class="btn" type="submit" name="action" value="Basket">
 	<input class="btn" type="submit" name="action" value="Check out">
 	<input class="btn" type="submit" name="action" value="Logout">
 	</td></tr></table>
 	</form>
+
+	
 eof
 	return $ret;
 }
@@ -690,6 +796,7 @@ Content-Type: text/html
 <title>mekong.com.au</title>
 <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
 <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.min.js"></script>
 <!-- AddThis Smart Layers BEGIN -->
 <!-- Go to http://www.addthis.com/get/smart-layers to customize -->
 <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=xa-52742d27315496a3"></script>
@@ -707,9 +814,18 @@ Content-Type: text/html
 <!-- AddThis Smart Layers END -->
 </head>
 <body>
+
+<div ng-app>
+	<form method="post" action="$ENV{"SCRIPT_URI"}" enctype="multipart/form-data" >
+	<label>Name:</label>
+		 <input type="text" name="yourName" ng-model="yourName" placeholder="Enter a name here">
+		 <hr>
+		 <h1>Hello {{yourName * 3}}!</h1>
+		 </form>
+		 </div>
+
 <p>
 <div class="container">
-<form method="post" action="$ENV{"SCRIPT_URI"}" enctype="multipart/form-data">
 eof
 }
 
@@ -720,7 +836,6 @@ sub page_trailer() {
 	my $debugging_info = debugging_info();
 	
 	return <<eof;
-	</form>
 	$debugging_info
 	</div>
 <body>
