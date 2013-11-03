@@ -30,4 +30,5 @@ Date		Start 		Stop 		Activity 		Comments
 03/11/13	09:12		11:47		Review			Reviews done, its just ugly, need to change the layout
 03/11/13	12:00		12:16		Bug				Fix searching form bug
 03/11/13	12:16		12:18		Bug				Logout now redirects properly
-
+03/11/13	12:18		12:28		Bug				Finalized order now working properly
+03/11/13	14:33		17:27		Add copies 		Add multiple copies of books and fixed bunch of other bugs

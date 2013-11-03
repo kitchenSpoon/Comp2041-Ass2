@@ -28,13 +28,15 @@ exit 0;
 # search results at all
 
 sub cgi_main {
-	print page_header();
-	print $ENV{"SCRIPT_URI"};
-	
 	set_global_variables();
 	read_books($books_file);
-
 	my $login = param('login');
+	
+	print page_header($login);
+	#print $ENV{"SCRIPT_URI"};
+	
+	
+
 	my $search_terms = param('search_terms');
 	my $action = param('action');
 	@paramKeys=(param());
@@ -60,7 +62,7 @@ sub cgi_main {
 			}
 			else
 			{
-				print basket_page(param("login"),param("password"),param("screen"),read_basket($login));
+				print basket_page(param("login"),param("password"),param("screen"),read_basket_qty($login));
 				print checkout_page($login);
 			}
 			
@@ -101,7 +103,7 @@ sub cgi_main {
 		} elsif($action eq "Basket" && authenticate(param("login"),param("password"))) {
 			print "Basket";
 			print search_form(param("login"),param("password"),param("screen"));
-			print basket_page(param("login"),param("password"),param("screen"),read_basket($login));
+			print basket_page(param("login"),param("password"),param("screen"),read_basket_qty($login));
 			print basket_user_button(param("login"),param("password"),param("screen"));
 			#Need print total cost!!
 		
@@ -258,15 +260,14 @@ sub cgi_main {
 	} elsif (defined $detail && $detail =~ /action [0-9]*/) {
 		($action,$isbn)=split(' ',$detail);
 		#print param($detail);
-		if(param($detail) eq "Add"){
+		if(param($detail) eq "Add" or param($detail) =~ /[0-9]+/){
 			print "addBasket";
-			add_basket($login,$isbn);
+			add_basket($login,$isbn,param("qty"));
 			#print hidden_inputs(param("login"),param("password"),param("screen"));
 			if(param("screen") eq "Details")
 			{
 				print detail_page($isbn);
 				print details_user_button(param("login"),param("password"),param("screen"),$detail);
-				review_page($isbn);
 			}
 			else
 			{
@@ -279,7 +280,8 @@ sub cgi_main {
 		{
 			print "deleteBasket";
 			delete_basket($login,$isbn);
-			print basket_page(param("login"),param("password"),param("screen"),read_basket($login));
+			print basket_page(param("login"),param("password"),param("screen"),read_basket_qty($login));
+			print basket_user_button(param("login"),param("password"),param("screen"));
 		}
 		elsif(param($detail) eq "Post Review")
 		{	
@@ -440,7 +442,7 @@ sub search_results {
 	my ($login,$password,$screen,$search_terms) = @_;
 	my $ret="";
 	my @matching_isbns = search_books($search_terms);
-	my $descriptions = get_book_descriptions_search(@matching_isbns);
+	my $descriptions = get_book_descriptions_search($login,$password,$screen,$search_terms,@matching_isbns);
 	$ret.='<form method="post" action="'.$ENV{"SCRIPT_URI"}.'" enctype="multipart/form-data">';
 	$ret.=hidden_inputs($login,$password,$screen);
 	$ret.=<<eof;
@@ -448,20 +450,23 @@ sub search_results {
 		<table align="center"><tr><td align="center">
 			search: <input type="text" name="search_terms" value="$search_terms" size=60></input>
 		</td></tr></table>
+		</form>
 	<!--<p>@matching_isbns-->
 	<!--<pre>-->
+	test
 			<table bgcolor="white" border="1" align="center"><caption></caption>
 			$descriptions
 			</table>
+	test2
 	<!--</pre>-->
 	<p>
 	<!--NOT ME-->
-	</form>
+	
 eof
 	return $ret;
 }
 sub get_book_descriptions_search {
-	my @isbns = @_;
+	my ($login,$password,$screen,$search_terms,@isbns) = @_;
 	my $descriptions = "";
 	our %book_details;
 	foreach $isbn (@isbns) {
@@ -470,9 +475,15 @@ sub get_book_descriptions_search {
 		my $authors = $book_details{$isbn}{authors} || "";
 		$authors =~ s/\n([^\n]*)$/ & $1/g;
 		$authors =~ s/\n/, /g;
-		$descriptions .= sprintf '<tr><td><img src="%s"></td> <td><i>%s</i><br>%s<br></td> <td align="right"><tt>%7s</tt></td> <td><input class="btn" type="submit" name="action '.$isbn.'" value="Add"><br>',$book_details{$isbn}{smallimageurl},$title,$authors,$book_details{$isbn}{price};
+		$descriptions .= '<form method="post" action="'.$ENV{"SCRIPT_URI"}.'" enctype="multipart/form-data">';
+		$descriptions .= hidden_inputs($login,$password,$screen);
+		$descriptions .= '<input type="hidden" name="search_terms" value="'.$search_terms.'">';
+		$descriptions .= sprintf '<tr><td><img src="%s"></td> <td><i>%s</i><br>%s<br></td> <td align="right"><tt>%7s</tt></td><td> ',$book_details{$isbn}{smallimageurl},$title,$authors,$book_details{$isbn}{price};
+		$descriptions .= '<input type="hidden" name="isbn '.$isbn.'" value="1"><br>';
+		$descriptions .= '<input type="text" name="qty" value="1">';
+		$descriptions .= '<input class="btn" type="submit" name="action '.$isbn.'" value="Add"><br>';
 		$descriptions .= '<input class="btn" type="submit" name="action '.$isbn.'" value="Details"><br>';
-		$descriptions .= '</td></tr>';
+		$descriptions .= '</td></tr></form>';
 	}
 	
 	
@@ -614,9 +625,9 @@ sub get_book_descriptions_basket {
 	my $descriptions = "";
 	our %book_details;
 	my $sum=0;
-	$descriptions.='<form method="post" action="'.$ENV{"SCRIPT_URI"}.'" enctype="multipart/form-data">';
-	$descriptions.=hidden_inputs($login,$password,$screen);
-	foreach $isbn (@isbns) {
+	
+	foreach $input (@isbns) {
+		my ($isbn,$qty)=split ' ',$input;
 		if (!$book_details{$isbn}) # shouldn't happen
 		{
 			#print "Internal error: unknown isbn $isbn in print_books\n" ;
@@ -626,9 +637,14 @@ sub get_book_descriptions_basket {
 		my $authors = $book_details{$isbn}{authors} || "";
 		$authors =~ s/\n([^\n]*)$/ & $1/g;
 		$authors =~ s/\n/, /g;
-		$descriptions .= sprintf '<tr><td><img src="%s"></td> <td><i>%s</i><br>%s<br></td> <td align="right"><tt>%7s</tt></td> <td><input class="btn" type="submit" name="action '.$isbn.'" value="Drop"><br>',$book_details{$isbn}{smallimageurl},$title,$authors,$book_details{$isbn}{price};
+		$descriptions.='<form method="post" action="'.$ENV{"SCRIPT_URI"}.'" enctype="multipart/form-data">';
+		$descriptions.=hidden_inputs($login,$password,$screen);
+		$descriptions .= sprintf '<tr><td><img src="%s"></td> <td><i>%s</i><br>%s<br></td> <td align="right"><tt>%7s</tt></td><td>Qty: %s</td> <td>',$book_details{$isbn}{smallimageurl},$title,$authors,$book_details{$isbn}{price},$qty;
+		$descriptions .= '<input type="hidden" name="isbn '.$isbn.'" value="1"><br>';
+		$descriptions .= '<input type="text" name="qty" value="1">';
+		$descriptions .= '<input class="btn" type="submit" name="action '.$isbn.'" value="Drop"><br>';
 		$descriptions .= '<input class="btn" type="submit" name="action '.$isbn.'" value="Details"><br>';
-		$descriptions .= '</td></tr>';
+		$descriptions .= '</td></tr></form>';
 		my $price=$book_details{$isbn}{price};
 		$price =~ s/\$//g;
 		$sum+=$price;
@@ -650,7 +666,7 @@ sub checkout_page {
 	$ret.=<<eof;
 	<b>Shipping Details:</b><pre>\n$user_details{name},\n$user_details{street},\n$user_details{city},\n$user_details{state}, \n$user_details{postcode}\n</pre>
 eof
-	$ret.='<form method="post" action="$ENV{"SCRIPT_URI"}" enctype="multipart/form-data">';
+	$ret.='<form method="post" action="'.$ENV{"SCRIPT_URI"}.'" enctype="multipart/form-data">';
 	$ret.=hidden_inputs(param("login"),param("password"),param("screen"));
 	$ret.=<<eof;
 		<p /><table align="center"><caption><font color=red></font></caption> <tr><td>Credit Card Number:</td> <td><input type="text" name="credit_card_number"  width="16" /></td></tr>
@@ -793,7 +809,12 @@ eof
 #
 # HTML at top of every screen
 #
-sub page_header() {
+sub page_header {
+	my ($login) = @_;
+	if(!$login)
+	{
+		$login="Stranger";
+	}
 	return <<eof;
 Content-Type: text/html
 
@@ -803,7 +824,6 @@ Content-Type: text/html
 <title>mekong.com.au</title>
 <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
 <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.min.js"></script>
 <!-- AddThis Smart Layers BEGIN -->
 <!-- Go to http://www.addthis.com/get/smart-layers to customize -->
 <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=xa-52742d27315496a3"></script>
@@ -822,16 +842,13 @@ Content-Type: text/html
 </head>
 <body>
 
-<div ng-app>
-	<form method="post" action="$ENV{"SCRIPT_URI"}" enctype="multipart/form-data" >
-	<label>Name:</label>
-		 <input type="text" name="yourName" ng-model="yourName" placeholder="Enter a name here">
-		 <hr>
-		 <h1>Hello {{yourName * 3}}!</h1>
-		 </form>
-		 </div>
 
 <p>
+<div align="center">
+	<img src="grumpy-cat.jpg" width="200" height="100">
+	<h1>Hi $login </h1>
+</div>
+
 <div class="container">
 eof
 }
@@ -840,12 +857,13 @@ eof
 # HTML at bottom of every screen
 #
 sub page_trailer() {
+	
 	my $debugging_info = debugging_info();
 	
 	return <<eof;
 	$debugging_info
 	</div>
-<body>
+</body>
 </html>
 eof
 }
@@ -1118,11 +1136,37 @@ sub read_basket {
 	my ($login) = @_;
 	our %book_details;
 	open F, "$baskets_dir/$login" or return ();
+	my @input = <F>;
+	my @isbns;
+	my @qty;
+
+	close(F);
+	chomp(@input);
+	
+	foreach (@input)
+	{	
+		my($isbn,$qty)=split ' ',$_;
+		push @isbns,$isbn;
+		!$book_details{$isbn} && die "Internal error: unknown isbn $_ in basket\n" ;
+	}
+	return @isbns;
+}
+
+sub read_basket_qty {
+	my ($login) = @_;
+	our %book_details;
+	open F, "$baskets_dir/$login" or return ();
 	my @isbns = <F>;
 
 	close(F);
 	chomp(@isbns);
-	!$book_details{$_} && die "Internal error: unknown isbn $_ in basket\n" foreach @isbns;
+	
+	foreach (@isbns)
+	{	
+		my($isbn,$qty)=split ' ',$_;
+		#push @isbns,$isbn;
+		!$book_details{$isbn} && die "Internal error: unknown isbn $_ in basket\n" ;
+	}
 	return @isbns;
 }
 
@@ -1149,9 +1193,9 @@ sub delete_basket {
 # add specified book to specified user's basket
 
 sub add_basket {
-	my ($login, $isbn) = @_;
+	my ($login, $isbn,$qty) = @_;
 	open F, ">>$baskets_dir/$login" or die "Can not open $baskets_dir/$login::$! \n";
-	print F "$isbn\n";
+	print F "$isbn $qty\n";
 	close(F);
 }
 
@@ -1422,7 +1466,7 @@ sub add_command {
 		print "Unknown isbn: $isbn.\n";
 		return;
 	}
-	add_basket($login, $isbn);
+	add_basket($login, $isbn,"");
 }
 
 sub drop_command {
