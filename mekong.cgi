@@ -619,6 +619,29 @@ eof
 eof
 }
 
+#basket
+sub basket_order {
+	my($login,$password,$screen,@isbns)=@_;
+	if(@isbns==0)
+	{
+		return <<eof;
+		<table bgcolor="white" align="center">
+		<tr><td>You have nothing!</td></tr>
+		</table>
+		<br>
+eof
+	}
+	my ($descriptions,$total) = get_book_descriptions_order($login,$password,$screen,@isbns);
+	return <<eof;
+	<!--<pre>-->
+		<table bgcolor="white" border="1" align="center"><caption></caption>
+		$descriptions
+		<tr><td><b>Total</b></td> <td></td> <td align="right">$total</td></tr>
+		</table>
+	<!--</pre>-->
+	<p>
+eof
+}
 
 sub get_book_descriptions_basket {
 	my($login,$password,$screen,@isbns)=@_;
@@ -647,12 +670,43 @@ sub get_book_descriptions_basket {
 		$descriptions .= '</td></tr></form>';
 		my $price=$book_details{$isbn}{price};
 		$price =~ s/\$//g;
-		$sum+=$price;
+		$sum+=$price*$qty;
 	}
 	$descriptions.='</form>';
 	
 	return ($descriptions,'$'.$sum);
 }
+
+sub get_book_descriptions_order {
+	my($login,$password,$screen,@isbns)=@_;
+	my $descriptions = "";
+	our %book_details;
+	my $sum=0;
+	
+	foreach $input (@isbns) {
+		my ($isbn,$qty)=split ' ',$input;
+		if (!$book_details{$isbn}) # shouldn't happen
+		{
+			#print "Internal error: unknown isbn $isbn in print_books\n" ;
+			last;
+		}
+		my $title = $book_details{$isbn}{title} || "";
+		my $authors = $book_details{$isbn}{authors} || "";
+		$authors =~ s/\n([^\n]*)$/ & $1/g;
+		$authors =~ s/\n/, /g;
+		$descriptions.='<form method="post" action="'.$ENV{"SCRIPT_URI"}.'" enctype="multipart/form-data">';
+		$descriptions.=hidden_inputs($login,$password,$screen);
+		$descriptions .= sprintf '<tr><td><img src="%s"></td> <td><i>%s</i><br>%s<br></td> <td align="right"><tt>%7s</tt></td><td>Qty: %s</td>',$book_details{$isbn}{smallimageurl},$title,$authors,$book_details{$isbn}{price},$qty;
+		$descriptions .= '</tr></form>';
+		my $price=$book_details{$isbn}{price};
+		$price =~ s/\$//g;
+		$sum+=$price*$qty;
+	}
+	$descriptions.='</form>';
+	
+	return ($descriptions,'$'.$sum);
+}
+
 
 #check out
 sub checkout_page {
@@ -721,7 +775,7 @@ sub order_page {
 		<tr><td align="center">Credit Card Number: $credit_card_number (Expiry $expiry_date)</td></tr>
 		</table>
 eof
-		$ret.=basket_page(param("login"),param("password"),param("screen"),@isbns);
+		$ret.=basket_order(param("login"),param("password"),param("screen"),@isbns);
 		print $ret;
 	}
 }
