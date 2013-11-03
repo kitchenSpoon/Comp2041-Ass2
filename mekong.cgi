@@ -1351,20 +1351,41 @@ sub delete_basket {
 
 sub add_basket {
 	my ($login, $isbn,$qty) = @_;
-	open F,'<',"$baskets_dir/$login" or die "Can not open $baskets_dir/$login::$! \n";
-	my @temp=<F>;
-	close F;
-	foreach (@temp)
+	if(open F, "<$baskets_dir/$login")
 	{
-		my($currIsbn,$currQty)=split ' ',$_;
-		if($currIsbn eq $isbn)
+		my @temp=<F>;
+		close F;
+		$found=0;
+		open F, ">$baskets_dir/$login" or die "Can not open $baskets_dir/$login\n";
+		foreach (@temp)
 		{
-			return;
+			my($currIsbn,$currQty)=split ' ',$_;
+			if($currIsbn eq $isbn)
+			{	
+				$found=1;
+				$qty+=$currQty;
+				print F "$isbn $qty\n";
+			}
+			else
+			{
+				print F "$currIsbn $currQty\n";
+			}
 		}
+		close F;
+		if($found==0)
+		{
+			open F, ">>$baskets_dir/$login" or die "Can not open $baskets_dir/$login\n";
+			print F "$isbn $qty\n";
+		}
+		close F;
 	}
-	open F, ">>$baskets_dir/$login" or die "Can not open $baskets_dir/$login::$! \n";
+	else
+	{
+		open F, ">$baskets_dir/$login" or die "Can not open $baskets_dir/$login\n";
+		print F "$isbn $qty\n";
+	}
 	
-	print F "$isbn $qty\n";
+	
 	
 	close(F);
 }
