@@ -50,12 +50,10 @@ sub cgi_main {
 	#print $detail;
 	
 	if (defined $action) {
-		print "action";
-		print param("login")," ";
-		print param("password")," ";
+		print "<!--action-->";
 		if($action eq "Check out" && authenticate(param("login"),param("password"))) {
 			print navBar_logined(param("login"),param("password"),param("screen"));
-			print "Checkout";
+			print "<!--Checkout-->";
 			if (!read_basket($login))
 			{
 				
@@ -72,7 +70,7 @@ sub cgi_main {
 			
 		} elsif($action eq "Finalize Order" && authenticate(param("login"),param("password"))) {
 			print navBar_logined(param("login"),param("password"),param("screen"));
-			print "Finalize Order";
+			print "<!--Finalize Order--";
 			
 			my ($credit_card_number, $expiry_date);
 			$credit_card_number=param("credit_card_number");
@@ -106,7 +104,7 @@ sub cgi_main {
 			
 		} elsif($action eq "Basket" && authenticate(param("login"),param("password"))) {
 			print navBar_logined(param("login"),param("password"),param("screen"));
-			print "Basket";
+			print "<!--Basket-->";
 			print search_form(param("login"),param("password"),param("screen"));
 			print basket_page(param("login"),param("password"),param("screen"),read_basket_qty($login));
 			print basket_user_button(param("login"),param("password"),param("screen"));
@@ -114,49 +112,24 @@ sub cgi_main {
 		
 		} elsif($action eq "View orders" && authenticate(param("login"),param("password"))) {
 			print navBar_logined(param("login"),param("password"),param("screen"));
-			print "View orders";
+			print "<!--View orders-->";
 			
 			order_page(param("login"),param("password"),param("screen"));
 			print print_orders_button(param("login"),param("password"),param("screen"));
 			
-			#open(F,"<","$orders_dir/$login");
-			#my @file=<F>;
-			#print @file;
-			#close F;
-			#print "<br>";
 			
-			#foreach $ordNum(@file)
-			#{
-			#	$retOrder="";
-			#	chomp($ordNum);
-			#	$retOrder.=<<eof;
-			#	<table bgcolor="white" border="1" align="center"><caption>Order #$ordNum - Thu Oct 31 20:02:57 2013<br>Credit Card Number: 1234567890123456 (Expiry 12/33)</caption>
-			#	 <tr><td><img src="http://ecx.images-amazon.com/images/I/51i9Py7%2B88L._SL75_.jpg"></td> <td><i>Dogs: A New Understanding of Canine Origin, Behavior and Evolution</i><br>Raymond Coppinger
-			#	Lorna Coppinger<br></td> <td align="right"><tt>price</tt></td> <td></td></tr>
-			#	 <tr><td><b>Total</b></td> <td></td> <td align="right">totalPrice</td></tr>
-			#	</table><p /><p />
-#eof
-#				print $retOrder;
-#				open(F,"<","$orders_dir/$ordNum");
-#				my @order=<F>;
-#				print @order;
-#				close F;
-#				print "<br>";
-#			}
-			#ILOVEJACK
-			#cat: ./orders/jack
-			#read_basket($login)
 		
 		} elsif($action eq "Logout" && authenticate(param("login"),param("password"))) {
 			#logout
-			print "Logout";
+			print "<!--Logout-->";
 			print login_form();
 		
 		} elsif($action eq "Create New Account") {
-			print "Create new account";
+			print "<!--Create new account-->";
+			print navBar_login();
 			print newAccount_form();
 		} elsif($action eq "Create Account") {
-			print "Create account";
+			print "<!--Create account-->";
 			my $email = param("email");
 			my $user = param("login");
 			my $msg = "Please Activate your new account by clicking this link ".$ENV{"SCRIPT_URI"}."?action=activate&user=$user";
@@ -168,26 +141,20 @@ sub cgi_main {
 			print login_form();
 		} elsif($action eq "Login" && authenticate(param("login"),param("password"))) {
 			print navBar_logined(param("login"),param("password"),param("screen"));
-			print "Login Search";
+			print "<!--Login Search-->";
 			print search_form(param("login"),param("password"),param("screen"));
 			print print_user_button(param("login"),param("password"),param("screen"));
 		}
 		elsif($action eq "Forget Password")
 		{
+			print navBar_login();
 			print forget_password_form();
 		}
 		elsif($action eq "Send Email")
 		{
 			print "Please Check your email to reset password.";
 			
-			#print <pre>`env`;
-			#%mail = ( smtp => 'smtp.cse.unsw.edu.au',
-			#		  To => 'hljw4@hotmail.com',
-			#		  From => 'jwli898@cse.unsw.edu.au',
-			#		  Message => 'Please click on this link'
-			 #);
-
-			#`sendmail(%mail)`;# or die $Mail::Sendmail::error;
+		
 			$username=param("username");
 			$email='';
 			open(F,'<',"$users_dir/$username");
@@ -269,7 +236,7 @@ sub cgi_main {
 		($action,$isbn)=split(' ',$detail);
 		#print param($detail);
 		if(param($detail) eq "Add" or param($detail) =~ /[0-9]+/){
-			print "addBasket";
+			print "<!--addBasket-->";
 			add_basket($login,$isbn,param("qty"));
 			#print hidden_inputs(param("login"),param("password"),param("screen"));
 			if(param("screen") eq "Details")
@@ -286,7 +253,7 @@ sub cgi_main {
 		}
 		elsif(param($detail) eq "Drop")
 		{
-			print "deleteBasket";
+			print "<!--deleteBasket-->";
 			delete_basket($login,$isbn,param("qty"));
 			print basket_page(param("login"),param("password"),param("screen"),read_basket_qty($login));
 			print basket_user_button(param("login"),param("password"),param("screen"));
@@ -294,21 +261,21 @@ sub cgi_main {
 		elsif(param($detail) eq "Post Review")
 		{	
 			#post review
-			print "Post Review";
+			print "<!--Post Review-->";
 			write_review(param("login"),param("Review"),$isbn);
 			print detail_page($isbn);
 			print details_user_button(param("login"),param("password"),param("screen"),$detail);
 			review_page($isbn);
 		}
 		else{ # details
-			print "Detail";
+			print "<!--Detail-->";
 			print detail_page($isbn);
 			print details_user_button(param("login"),param("password"),param("screen"),$detail);
 			print review_page($isbn);
 		}
 	
 	} elsif (defined $search_terms) {
-			print "search terms";
+			print "<!--search terms-->";
 			param(-name=>'screen',-value=>'searchRes');
 			print navBar_logined(param("login"),param("password"),param("screen"));
 			print search_results(param("login"),param("password"),param("screen"),$search_terms);
@@ -316,7 +283,7 @@ sub cgi_main {
 		#}
 	} else {
 		
-		print "loginform";
+		print "<!--loginform-->";
 		print login_form();
 	}
 	
@@ -335,10 +302,10 @@ sub navBar_login {
 				<span class="icon-bar"></span>
 				<span class="icon-bar"></span>
 			  </button>
-			  <a class="brand" href="./index.html">Mekong</a>
+			  <a class="brand" href="">Mekong</a>
 			  <div class="nav-collapse collapse">
 				<ul class="nav">
-				  <li class="active">
+				  <li class="">
 					<a href="?action=Login">Login</a>
 				  </li>
 				  <li class="">
@@ -377,10 +344,10 @@ sub navBar_logined {
 				<span class="icon-bar"></span>
 				<span class="icon-bar"></span>
 			  </button>
-			  <a class="brand" href="./index.html">Mekong</a>
+			  <a class="brand" href="">Mekong</a>
 			  <div class="nav-collapse collapse">
 				<ul class="nav">
-				  <li class="active">
+				  <li class="">
 					<a href="?action=Login&login=$login&password=$password&screen=$screen">Search</a>
 				  </li>
 				  <li class="">
@@ -836,30 +803,7 @@ eof
 eof
 	return $ret;
 	
-	print_books(@basket_isbns);
-	printf "Total: %11s\n", sprintf("\$%.2f", total_books(@basket_isbns));
-	print "\n";
-	my ($credit_card_number, $expiry_date);
-	while (1) {
-			print "Credit Card Number: ";
-			$credit_card_number = <>;
-			exit 1 if !$credit_card_number;
-			$credit_card_number =~ s/\s//g;
-			next if !$credit_card_number;
-			last if $credit_card_number =~ /^\d{16}$/;
-			last if legal_credit_card_number($credit_card_number);
-			print "$last_error\n";
-	}
-	while (1) {
-			print "Expiry date (mm/yy): ";
-			$expiry_date = <>;
-			exit 1 if !$expiry_date;
-			$expiry_date =~ s/\s//g;
-			next if !$expiry_date;
-			last if legal_expiry_date($expiry_date);
-			print "$last_error\n";
-	}
-	finalize_order($login, $credit_card_number, $expiry_date);
+	
 }
 
 #View orders
@@ -1017,7 +961,9 @@ sub page_trailer() {
 	my $debugging_info = debugging_info();
 	
 	return <<eof;
+	<!--
 	$debugging_info
+	-->
 	</div>
 </body>
 </html>
@@ -1419,7 +1365,7 @@ sub finalize_order {
 	print F ($order_number + 1);
 	close(F);
 
-	my @basket_isbns = read_basket($login);
+	my @basket_isbns = read_basket_qty($login);
 	open ORDER,">$orders_dir/$order_number" or die "Can not open $orders_dir/$order_number:$! \n";
 	print ORDER "order_time=".time()."\n";
 	print ORDER "credit_card_number=$credit_card_number\n";
